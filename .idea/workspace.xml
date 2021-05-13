@@ -21,14 +21,8 @@
   <component name="ChangeListManager">
     <list default="true" id="929a2cd3-d981-448d-8979-651deacb31da" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/about.html" beforeDir="false" afterPath="$PROJECT_DIR$/about.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/contact.html" beforeDir="false" afterPath="$PROJECT_DIR$/contact.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/img/contact-bg.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/img/home-bg.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/img/post-bg.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/img/post-sample-image.jpg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/post.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,6 +31,13 @@
   </component>
   <component name="ComposerSettings">
     <execution />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -47,6 +48,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="node.js.detected.package.eslint" value="true" />
@@ -69,6 +71,7 @@
       <updated>1620881269626</updated>
       <workItem from="1620881271243" duration="220000" />
       <workItem from="1620881674726" duration="4106000" />
+      <workItem from="1620888696692" duration="1298000" />
     </task>
     <servers />
   </component>
@@ -85,6 +88,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
     <state x="459" y="186" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1620888103414">
@@ -107,6 +111,10 @@
       <screen x="45" y="23" width="1491" height="937" />
     </state>
     <state width="1439" height="224" key="GridCell.Tab.0.right/45.23.1491.937@45.23.1491.937" timestamp="1620888616700" />
+    <state width="625" height="500" key="SwitcherDM" timestamp="1620889565713">
+      <screen x="45" y="23" width="1491" height="937" />
+    </state>
+    <state width="625" height="500" key="SwitcherDM/45.23.1491.937@45.23.1491.937" timestamp="1620889565713" />
     <state x="291" y="168" key="Vcs.Push.Dialog.v2" timestamp="1620882132121">
       <screen x="45" y="23" width="1491" height="937" />
     </state>
@@ -115,5 +123,9 @@
       <screen x="45" y="23" width="1491" height="937" />
     </state>
     <state x="538" y="395" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/45.23.1491.937@45.23.1491.937" timestamp="1620888595008" />
+    <state x="371" y="23" width="838" height="1032" key="search.everywhere.popup" timestamp="1620888819661">
+      <screen x="45" y="23" width="1491" height="937" />
+    </state>
+    <state x="371" y="23" width="838" height="1032" key="search.everywhere.popup/45.23.1491.937@45.23.1491.937" timestamp="1620888819661" />
   </component>
 </project>
