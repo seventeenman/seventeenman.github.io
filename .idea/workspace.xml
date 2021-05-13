@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="929a2cd3-d981-448d-8979-651deacb31da" name="Default Changelist" comment="" />
+    <list default="true" id="929a2cd3-d981-448d-8979-651deacb31da" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/about.html" beforeDir="false" afterPath="$PROJECT_DIR$/about.html" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,6 +23,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="reference.webide.settings.project.settings.php" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
@@ -33,10 +36,29 @@
       <option name="presentableId" value="Default" />
       <updated>1620881269626</updated>
       <workItem from="1620881271243" duration="220000" />
+      <workItem from="1620881674726" duration="407000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state width="1439" height="224" key="GridCell.Tab.0.bottom" timestamp="1620881713725">
+      <screen x="45" y="23" width="1491" height="937" />
+    </state>
+    <state width="1439" height="224" key="GridCell.Tab.0.bottom/45.23.1491.937@45.23.1491.937" timestamp="1620881713725" />
+    <state width="1439" height="224" key="GridCell.Tab.0.center" timestamp="1620881713724">
+      <screen x="45" y="23" width="1491" height="937" />
+    </state>
+    <state width="1439" height="224" key="GridCell.Tab.0.center/45.23.1491.937@45.23.1491.937" timestamp="1620881713724" />
+    <state width="1439" height="224" key="GridCell.Tab.0.left" timestamp="1620881713723">
+      <screen x="45" y="23" width="1491" height="937" />
+    </state>
+    <state width="1439" height="224" key="GridCell.Tab.0.left/45.23.1491.937@45.23.1491.937" timestamp="1620881713723" />
+    <state width="1439" height="224" key="GridCell.Tab.0.right" timestamp="1620881713724">
+      <screen x="45" y="23" width="1491" height="937" />
+    </state>
+    <state width="1439" height="224" key="GridCell.Tab.0.right/45.23.1491.937@45.23.1491.937" timestamp="1620881713724" />
   </component>
 </project>
