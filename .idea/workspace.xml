@@ -20,8 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="929a2cd3-d981-448d-8979-651deacb31da" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/about.html" beforeDir="false" afterPath="$PROJECT_DIR$/about.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-5-8.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-8.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,7 +69,7 @@
       <updated>1620881269626</updated>
       <workItem from="1620881271243" duration="220000" />
       <workItem from="1620881674726" duration="4106000" />
-      <workItem from="1620888696692" duration="3980000" />
+      <workItem from="1620888696692" duration="4307000" />
     </task>
     <servers />
   </component>
@@ -118,6 +117,10 @@
       <screen x="45" y="23" width="1491" height="937" />
     </state>
     <state x="291" y="168" key="Vcs.Push.Dialog.v2/45.23.1491.937@45.23.1491.937" timestamp="1620882132121" />
+    <state x="193" y="123" width="1291" height="737" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1620897861359">
+      <screen x="45" y="23" width="1491" height="937" />
+    </state>
+    <state x="193" y="123" width="1291" height="737" key="com.intellij.history.integration.ui.views.FileHistoryDialog/45.23.1491.937@45.23.1491.937" timestamp="1620897861359" />
     <state x="538" y="395" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1620888595008">
       <screen x="45" y="23" width="1491" height="937" />
     </state>
