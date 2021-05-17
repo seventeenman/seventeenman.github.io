@@ -87,23 +87,125 @@
 
                 <h2 class="section-heading">环境搭建</h2>
                 <p>&nbsp;&nbsp;&nbsp;一台win7(双网卡)作为服务器模拟连通内外网，同域内一台DC作为域控</p>
-                <p>&nbsp;&nbsp;&nbsp;win7 ip: </p>
-
-                <p>&nbsp;&nbsp;&nbsp;网络拓扑图如下:</p>
-
-                <h2 class="section-heading">信息收集</h2>
-
-
                 
+                <h2 class="section-heading">网络拓扑图</h2>
+
                 <a href="#">
-                    <img class="img-fluid" src="../img/2021-5-14/" alt="">
+                    <img class="img-fluid" src="../img/2021-5-14/network.jpg" alt="">
                 </a>
-                
+
+                <p>&nbsp;&nbsp;&nbsp;win7服务总是断开，所以下文步骤中ip改变是因为我重启了</p>
+
+
+                <h2 class="section-heading">外网打点</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;nmap扫描一下端口以及探测，发现web端口与服务器系统信息</p>
+
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/info.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;首先看一下web服务，发现是TP框架，扫描一下目录，发现可疑目录</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/web.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;看起来很像是一个木马，爆破了1w条无果，找找其它线索</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/add.jpg" alt="">
+                </a>
 
                 <h2 class="section-heading">获取win7权限</h2>
 
+                <p>&nbsp;&nbsp;&nbsp;本来想看一下runtime下有没有日志，出了个报错页面，得到TP版本，搜一下EXP一把梭</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/error.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;测试了一下可以打通</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/poc.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;写个马进public目录试试</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/exp.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;成功连上，开启终端收集一下网卡信息，发现有域</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/ipconfig.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;收集系统信息，为下一步内网渗透做准备</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/system.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;msf生成payload，与powershell建立方向连接</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/powshell.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;获取下内网情况</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/user.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;ping一下域控dc，拿到内网ip</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/controller.jpg" alt="">
+                </a>
 
                 <h2 class="section-heading">内网横向移动</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;mimikaz模块抓取密码，因为系统位数不同，先迁移到64位进程中</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/kiwi.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;成功获取域管理员跟域用户密码</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/hash.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;使用msf的psexec模块登录dc，因为dc不通外网，所以还用ew建立了sock5代理进行横向，
+                但一直打不通换了个隧道继续尝试。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/dc.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;这里虽然获取到session，防火墙也从win7那边关闭了。
+                    但还一直timeout，不知道是环境问题还是我的问题，也没法继续往下利用</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/fail.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;上文已经知道打的补丁非常少，所以开cs尝试票据攻击</p>
+
+
+
+
+
+
+                
+
+
 
                 <h2 class="section-heading">留下持续后门</h2>
 
