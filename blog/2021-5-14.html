@@ -35,7 +35,7 @@
 <!-- Navigation -->
 <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
     <div class="container">
-        <a class="navbar-brand" href="index.html">Index</a>
+        <a class="navbar-brand" href="../index.html">Index</a>
         <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
                 data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -83,10 +83,10 @@
             <div class="col-lg-8 col-md-10 mx-auto">
 
                 <h2 class="section-heading">前言</h2>
-                <p> </p>
+                <p>&nbsp;&nbsp;&nbsp;借此靶场来学习一下内网渗透的思路。</p>
 
                 <h2 class="section-heading">环境搭建</h2>
-                <p>&nbsp;&nbsp;&nbsp;一台win7(双网卡)作为服务器模拟连通内外网，同域内一台DC作为域控</p>
+                <p>&nbsp;&nbsp;&nbsp;一台win7(双网卡)作为服务器模拟连通内外网，同域内一台DC作为域控。</p>
                 
                 <h2 class="section-heading">网络拓扑图</h2>
 
@@ -94,25 +94,25 @@
                     <img class="img-fluid" src="../img/2021-5-14/network.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;win7服务总是断开，所以下文步骤中ip改变是因为我重启了</p>
+                <p>&nbsp;&nbsp;&nbsp;win7服务总是断开，所以下文步骤中win7的外网ip改变是因为我重启了。</p>
 
 
                 <h2 class="section-heading">外网打点</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;nmap扫描一下端口以及探测，发现web端口与服务器系统信息</p>
+                <p>&nbsp;&nbsp;&nbsp;nmap扫描一下端口以及探测，发现web端口与服务器系统信息。</p>
 
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/info.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;首先看一下web服务，发现是TP框架，扫描一下目录，发现可疑目录</p>
+                <p>&nbsp;&nbsp;&nbsp;首先看一下web服务，发现是TP框架，扫描一下目录，发现可疑目录。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/web.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;看起来很像是一个木马，爆破了1w条无果，找找其它线索</p>
+                <p>&nbsp;&nbsp;&nbsp;看起来超像一个木马，爆破了1w条无果，找找其它线索。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/add.jpg" alt="">
@@ -120,96 +120,141 @@
 
                 <h2 class="section-heading">获取win7权限</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;本来想看一下runtime下有没有日志，出了个报错页面，得到TP版本，搜一下EXP一把梭</p>
+                <p>&nbsp;&nbsp;&nbsp;本来想看一下runtime下有没有日志，结果先出了个报错页面，得到TP版本之后，搜一下相关EXP一把梭。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/error.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;测试了一下可以打通</p>
+                <p>&nbsp;&nbsp;&nbsp;测试了一下可以打通。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/poc.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;写个马进public目录试试</p>
+                <p>&nbsp;&nbsp;&nbsp;写个马进public目录试试。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/exp.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;成功连上，开启终端收集系统信息，为进一步渗透做准备</p>
+                <p>&nbsp;&nbsp;&nbsp;成功连上，开启终端收集系统信息，为进一步渗透做准备。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/system.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;收集一下网卡信息，发现有域</p>
+                <p>&nbsp;&nbsp;&nbsp;收集一下网卡信息，发现有域。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/ipconfig.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;msf生成payload，与powershell建立反向连接</p>
+                <p>&nbsp;&nbsp;&nbsp;msf生成payload，与powershell建立反向连接。</p>
 
                 <a href="#">
-                    <img class="img-fluid" src="../img/2021-5-14/powshell.jpg" alt="">
+                    <img class="img-fluid" src="../img/2021-5-14/msf.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;拿下win7机子，获取下内网情况</p>
+                <p>&nbsp;&nbsp;&nbsp;拿下win7机子，获取下内网情况。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/user.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;ping一下域控dc，拿到内网ip</p>
+                <p>&nbsp;&nbsp;&nbsp;ping一下域控DC，拿到内网ip。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/controller.jpg" alt="">
                 </a>
 
-                <h2 class="section-heading">内网横向移动</h2>
+                <h2 class="section-heading">横向渗透</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;mimikaz模块抓取密码，因为系统位数不同，先迁移到64位进程中</p>
+                <p>&nbsp;&nbsp;&nbsp;mimikaz模块抓取密码，因为系统位数不同，先迁移到64位进程中。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/kiwi.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;成功获取域管理员跟域用户密码</p>
+                <p>&nbsp;&nbsp;&nbsp;成功获取域管理员跟域用户密码。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-14/hash.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;使用msf的psexec模块登录dc，因为dc不通外网，所以还用ew建立了sock5代理进行横向，
-                但一直打不通换了个隧道继续尝试。</p>
+                <p>&nbsp;&nbsp;&nbsp;win7开放6666端口(TCP)。</p>
 
                 <a href="#">
-                    <img class="img-fluid" src="../img/2021-5-14/dc.jpg" alt="">
+                    <img class="img-fluid" src="../img/2021-5-14/port.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;这里虽然获取到session，防火墙也从win7那边关闭了。
-                    但还一直timeout，不知道是环境问题还是我的问题，也没法继续往下利用</p>
+                <p>&nbsp;&nbsp;&nbsp;kali上开启ew，搭好与win7见面的路。</p>
 
                 <a href="#">
-                    <img class="img-fluid" src="../img/2021-5-14/fail.jpg" alt="">
+                    <img class="img-fluid" src="../img/2021-5-14/kali_sock5.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;前期信息收集已经知道打的补丁非常少，所以开cs尝试凭证传递攻击</p>
+                <p>&nbsp;&nbsp;&nbsp;win7使用ew与kali见面。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/win_sock5.jpg" alt="">
+                </a>
 
 
+                <p>&nbsp;&nbsp;&nbsp;win7成为了跳板机，给payload设置好sock代理，直接打DC。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/pwn_dc.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;通过win7作跳板，对DC进行远程桌面连接。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/rdp.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;用我们刚刚用mimikaz获取的账号密码登录DC。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/desk.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;登录成功，喜提DC一台。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/dcshell.jpg" alt="">
+                </a>
 
 
+                <h2 class="section-heading">权限维持</h2>
 
+                <p>&nbsp;&nbsp;&nbsp;在DC上，为DSRM账号设置新密码。</p>
 
-                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/dcpasswd.jpg" alt="">
+                </a>
 
+                <p>&nbsp;&nbsp;&nbsp;dump下来DC本地SAM文件中的本地管理员的NTLM Hash。</p>
 
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/dchash.jpg" alt="">
+                </a>
 
-                <h2 class="section-heading">留下持续后门</h2>
+                <p>&nbsp;&nbsp;&nbsp;在powershell中修改域控主机的DSRM账户登录方式，方便我们今后哈希传递攻击。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/powershell.jpg" alt="">
+                </a>
+
 
                 <h2 class="section-heading">清除痕迹</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;查看事件日志并清除所有事件日志，准备跑路。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-14/log.jpg" alt="">
+                </a>
+
 
                 <h2 class="section-heading">There Is Nothing Below</h2>
                 <p>&nbsp;&nbsp;&nbsp;</p>
