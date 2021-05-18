@@ -129,13 +129,88 @@ vendor<span class="hljs-regexp">/fakerphp/</span>faker<span class="hljs-regexp">
                 <p>&nbsp;&nbsp;&nbsp;可以看到官方的补丁加了个__wakeup方法，在反序列化时触发该方法。</p>
 
                 <a href="#">
-                    <img class="img-fluid" src="../img/2021-5-19/pop-1.jpg" alt="">
+                    <img class="img-fluid" src="../img/2021-5-19/fix-1.jpg" alt="">
+                </a>
+
+                <p>&nbsp;&nbsp;&nbsp;官方也在这里加了个__wakeup方法，相当于上一条链已经用不了了，但可以在其它地方找到差不多的POP链。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-19/fix-2.jpg" alt="">
                 </a>
 
                 <h2 class="section-heading">构造利用链</h2>
-
-
                 
+
+								<p>&nbsp;&nbsp;&nbsp;旧的不去新的不来，找到新的__destruct()方法来触发，
+									该方法位于vendor/codeception/codeception/ext/RunProcess.php，
+									并且该类中没有__wakeup()。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-19/pop-1.jpg" alt="">
+                </a>
+								
+								
+								<p>&nbsp;&nbsp;&nbsp;可以看到__destruct调用了$this->stopProcess()。
+									进入$this->stopProcess()方法后，这里在if中调用了$process->isRunning()。
+									而$process来源于foreach迭代器中的$this->processes，$this->processes可控，
+									我们就可以来触发__call方法啦。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-19/pop-2.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令$this->processes[] = new ValidGenerator()</span>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;全局找一下没有__wakeup()方法且含有__call()方法的类来触发，
+                	找到vendor/fakerphp/faker/src/Faker/ValidGenerator.php</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-19/pop-3.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;看到这个call_user_func_array()跟call_user_func()就知道一切都好起来了，
+                	跟上一条链一样。不过需要控制$this->validator跟$res才行，$this->validator这个参数可控，
+                	而$res需要利用call_user_func_array([$this->generator, $name], $arguments)回调一个可以控制返回值的__call方法。
+                	</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-19/pop-4.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令$this->generator = new DefaultGenerator()</span>
+								
+
+								<p>&nbsp;&nbsp;&nbsp;再次全局搜索一个__call()方法来利用，这里用的是vendor/fakerphp/faker/src/Faker/DefaultGenerator.php</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-19/pop-5.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;看一下该类中的__call方法，返回值$this->default可控。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-19/pop-6.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令$this->default = 'ls'</span>
+                
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;这里if条件必须为false，一旦为true进去if里面就被throw抛出程序外了，所以控制$this->maxRetries为大于1的数。
+                	接着，进去while条件执行call_user_func($this->validator, $res)，$this->validator可控，即可命令执行。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-19/pop-7.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令$this->validator = "system"和$this->maxRetries = 17</span>
+                
+                
+                
+                
+
+
+
+
 
 
                 <h2 class="section-heading">POC</h2>
