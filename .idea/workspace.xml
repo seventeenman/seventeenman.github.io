@@ -20,10 +20,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="929a2cd3-d981-448d-8979-651deacb31da" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/blog/2021-5-1.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-1.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/blog/2021-5-14.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-14.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/blog/2021-5-18.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-18.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/blog/2021-5-8.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-8.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +42,13 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="PhpServers">
+    <servers>
+      <server host="localhost" id="7e37caa1-f547-4577-bb8a-a89087b6531a" name="localhost" port="8888" />
+    </servers>
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="PHP_7.4.2" />
+  <component name="PhpXdebugProxy" ide_key="this_is_your_idekey" host="localhost" port="8888" />
   <component name="ProjectId" id="1sT0SBSAB46JqBc8zGChuefAsGW" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -60,8 +66,13 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="reference.webide.settings.project.settings.php" />
+    <property name="settings.editor.selected.configurable" value="reference.settings.php.debug.xdebug.proxy" />
     <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RunManager">
+    <configuration name="localhost" type="PhpWebAppRunConfigurationType" factoryName="PHP Web Application" browser="98ca6316-2f89-46d9-a9e5-fa9e2b0625b3" server_name="localhost">
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -117,6 +128,9 @@
       <workItem from="1621316333173" duration="12000" />
       <workItem from="1621316534176" duration="5000" />
       <workItem from="1621316715913" duration="48000" />
+      <workItem from="1621350294894" duration="1585000" />
+      <workItem from="1621355994344" duration="71000" />
+      <workItem from="1621356075926" duration="142000" />
     </task>
     <servers />
   </component>
@@ -136,6 +150,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="251" y="86" width="1079" height="840" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1621355667459">
+      <screen x="43" y="23" width="1493" height="937" />
+    </state>
+    <state x="251" y="86" width="1079" height="840" key="#com.intellij.execution.impl.EditConfigurationsDialog/43.23.1493.937@43.23.1493.937" timestamp="1621355667459" />
     <state x="459" y="186" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1620888103414">
       <screen x="45" y="23" width="1491" height="937" />
     </state>
@@ -156,6 +174,10 @@
       <screen x="45" y="23" width="1491" height="937" />
     </state>
     <state width="1439" height="224" key="GridCell.Tab.0.right/45.23.1491.937@45.23.1491.937" timestamp="1620888616700" />
+    <state x="206" y="23" key="SettingsEditor" timestamp="1621355648983">
+      <screen x="43" y="23" width="1493" height="937" />
+    </state>
+    <state x="206" y="23" key="SettingsEditor/43.23.1493.937@43.23.1493.937" timestamp="1621355648983" />
     <state width="625" height="500" key="SwitcherDM" timestamp="1620889565713">
       <screen x="45" y="23" width="1491" height="937" />
     </state>
