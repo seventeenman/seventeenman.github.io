@@ -111,16 +111,98 @@
 									
 									
 								<p>&nbsp;&nbsp;&nbsp;入口点位于:/thinkphp/library/think/Request.php，
-									需要控制$filter与$value的值，才能命令执行。</p>
+									传入的第三个参数为回调函数名，第一个参数为传入函数的参数，
+									所以需要控制$filter与$value的值，才能命令执行。</p>
 									
 								<a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-2.jpg" alt="">
                 </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;查看一下filterValue方法的调用情况，
+                	可以看到无论$data是不是数组最终都会调用filterValue方法，
+                	而$filter通过过滤器$this->getFilter($filter, $default)方法来获取。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-3.jpg" alt="">
+                </a>
 
-	
-
-
-
+								<p>&nbsp;&nbsp;&nbsp;查看一下getFilter方法，可见$filter为空时，
+									将$this->filter赋值给$filter。最后filter[] = $default，
+									即给filter[]添加一组空数据。所以，返回的其实是 [$this->filter,null]</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;回到input()方法，这里的array_walk_recursive($data, [$this, 'filterValue'], $filter)，
+                	意思是将$filter传入$this->filterValue()，再将$data中每一个元素使用$this->filterValue()。
+                	$filter为回调函数名，$data为传入回调函数的参数。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-5.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;查看一下input()方法的调用情况，康康传入$data是什么。
+                	来到同文件下的param方法，可以看出$data是请求参数和URL地址中的参数合并后的数组。
+                	接着来看一下怎么控制$filter(回调函数名)跟$data(回调函数参数)就可以了。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到同文件下的method方法，当$this->method为false时，
+                	我们可以控制$this->method的值，即可以任意调用Request类中存在的任何方法。
+               		在配置文件中，Config::get('var_method')在默认情况下是_method。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-7.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;可以通过调用Request类的__construct方法来控制回调函数和参数。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-8.jpg" alt="">
+                </a>
+                <span class="caption text-muted">_method=__construct&filter[]=system&get[]=whoami或者
+                	_method=__construct&filter[]=system&route[]=whoami</span>
+		
+								<p>&nbsp;&nbsp;&nbsp;接下来，就需要看一下怎么调用Request类的method方法以及param方法。
+									在thinkphp/library/think/Route.php，调用了$request->method()。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-9.jpg" alt="">
+                </a>
+								
+								<p>&nbsp;&nbsp;&nbsp;再来查看一下Route::check的调用情况。
+									找到thinkphp/library/think/APP.app中的routeCheck方法。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-10.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;发现在APP:run()中调用了routeCheck方法，
+                	并且APP:run()为应用启动类，每次都会在执行应用时被调用。所以，需要让$dispatch为空。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-11.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;查看一下Hook::listen('app_dispatch', self::$dispatch)，
+                	调试了一下self::$dispatch为空。所以，够调用$request->method()方法。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-12.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接下来，来看一下Request::param的调用。
+                	发现在thinkphp/library/think/App.php::run()有调用，但需要满足开启debug模式。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-13.jpg" alt="">
+                </a>
 
 
                 <h2 class="section-heading">POC(调试模式开启)</h2>
@@ -132,6 +214,22 @@
 POST: <span class="hljs-title">_method</span>=__construct&amp;<span class="hljs-built_in">filter</span>[]=<span class="hljs-keyword">system</span>&amp;route[]=whoami</code></pre>
                 	
                 </div>
+                
+                <p>&nbsp;&nbsp;&nbsp;但在实际渗透中，很多网站并不会开启debug模式，所以还需要找别的利用链调用Request::param。
+                	全局搜索调用情况，还找到了在thinkphp/library/think/App.php::run()中会调用的thinkphp/library/think/App.php::exec()方法，
+                	这里需要满足$dispatch['type']==method或者$dispatch['type']==controller时，才会调用param()方法。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-14.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;而$dispatch = self::routeCheck($request, $config)，
+                	所以回过头看一下thinkphp/library/think/Route.php::routeCheck方法。
+                	发现返回值可以利用的有这个self::checkRoute($request, $rules, $url, $depr)。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-15.jpg" alt="">
+                </a>
                 
                 
                 
