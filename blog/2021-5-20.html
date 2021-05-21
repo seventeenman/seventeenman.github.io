@@ -191,7 +191,7 @@
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;查看一下Hook::listen('app_dispatch', self::$dispatch)，
-                	调试了一下self::$dispatch为空。所以，够调用$request->method()方法。</p>
+                	调试了一下，self::$dispatch为空。所以，够调用$request->method()方法。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-12.jpg" alt="">
@@ -224,12 +224,26 @@ POST: <span class="hljs-title">_method</span>=__construct&amp;<span class="hljs-
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;而$dispatch = self::routeCheck($request, $config)，
-                	所以回过头看一下thinkphp/library/think/Route.php::routeCheck方法。
-                	发现返回值可以利用的有这个self::checkRoute($request, $rules, $url, $depr)。</p>
+                	所以回过头看一下thinkphp/library/think/App.php::routeCheck方法。
+                	这里要让$result['type']==method或者$result['type']==controller才能满足$dispatch['type']==method或者$dispatch['type']==controller</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-15.jpg" alt="">
                 </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下self::routeCheck方法，可以看到这里当路由执行为路由到方法或者路由到控制器时，
+                	可以满足$result['type']==method或者$result['type']==controller。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-16.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;而TP自带的验证码组件captcha注册了一个get路由，我们只需要通过前面的__destruct方法来对method覆盖即可。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-17.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令method=get</span>
                 
                 
                 
