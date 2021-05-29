@@ -155,18 +155,78 @@
                     <img class="img-fluid" src="../img/2021-5-30/pop-1-7.jpg" alt="">
                 </a>
                 
-                <h2 class="section-heading">关于防御方案</h2>
+                <h2 class="section-heading">关于cve-2018-18086的防御方案</h2>
                 
-                <p>&nbsp;&nbsp;&nbsp;不太清楚官方有没有给出什么补丁，只看到官方说在后台登录加如登录码控制进入后台的前提条件。
-                	此外，还有官方也指出可以删除不需要的功能并提供了方法，不过也有案例是开发人员偷懒只删除前端功能点，
+                <p>&nbsp;&nbsp;&nbsp;不太清楚官方有没有给出什么补丁，只看到官方说在后台登录加入登录码，
+                	以此来控制进入后台的前提条件。</p>
+                <p>&nbsp;&nbsp;&nbsp;此外，还有官方也指出可以删除不需要的功能并提供了方法，不过也有案例是开发人员偷懒只删除前端功能点，
                 	搞安全的同学只需要访问相同路径即可使用对应的功能。</p>
+                <p>&nbsp;&nbsp;&nbsp;此功能点修复的话，个人倾向于在上传后与include前这段代码中增加对模型文件的内容检测。</p>
                 	
                 	
                 <h2 class="section-heading">CVE-2018-19462</h2>	
-                	
                 
+                <p>&nbsp;&nbsp;&nbsp;按图片步骤点击，接着常规操作绝对路径写shell，查看前端发送到后端的参数，定位一下功能点代码段。</p>
 
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-30/pop-2-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;根据$enews=$_POST['enews']找到这里，可以看到调用了DoExecSql($_POST,$logininid,$loginin)方法。</p>
 
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-30/pop-2-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下该函数，这里调用了RepSqlTbpre($query)。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-30/pop-2-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;看一下RepSqlTbpre($query)的代码，发现只是对表名添加前缀操作。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-30/pop-2-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;return回来，可以看到调用了DoRunQuery($query)函数。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-30/pop-2-5.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;DoRunQuery($query)函数内对sql语句进行了处理，
+                	如果有多条语句的话，用foreach遍历执行sql语句。
+                	(看到这里我是比较意外的，真的什么过滤也没有，不过想了想这毕竟是人家对后台管理系统)</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-30/pop-2-6.jpg" alt="">
+                </a>
+                
+                	
+                <p>&nbsp;&nbsp;&nbsp;页面回显执行sql语句成功。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-30/pop-2-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;成功写入shell。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-30/pop-2-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;成功执行命令。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-30/pop-2-9.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">关于CVE-2018-19462的防御方案</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;个人偏向于给该角色分配好权限，控制写入shell的点。</p>
 
 
 
