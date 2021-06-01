@@ -151,8 +151,8 @@
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下PutCookie()函数，可以看到这里用substr(md5($cfg_cookie_encode.$_COOKIE[$key]),0,16)生成cookie['last_vid__ckMd5']。
-                	所以，可以利用这里来伪造需要满足substr(md5($cfg_cookie_encode.$_COOKIE[$key]),0,16)校验的cookie。
-                	这就解释了为什么要在member/index.php拿取cookie['last_vid__ckMd5']赋值给cookie['DeDeUserID_ckMd5']。</p>
+                	所以，可以利用这里来伪造需要满足substr(md5($cfg_cookie_encode.$_COOKIE[$key]),0,16)校验的cookie。</p>
+                <p>&nbsp;&nbsp;&nbsp;这就解释了为什么要在member/index.php?uid=000001拿取cookie['last_vid__ckMd5']赋值给member/index.php中的cookie['DeDeUserID_ckMd5']。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-8.jpg" alt="">
