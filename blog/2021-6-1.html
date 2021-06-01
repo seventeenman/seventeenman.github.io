@@ -103,6 +103,75 @@
                 
                 <h2 class="section-heading">前台任意用户登录</h2>
                 
+                
+                <p>&nbsp;&nbsp;&nbsp;首先注册一个用户名为000001的账户
+                	(只要经过intval()函数处理后为1的值即可，后面代码分析的时候会讲到)。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-1-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，管理员需要审核注册的用户。这里直接上后台管理设置权限。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-1-2.jpg" alt="">
+                </a>
+                              
+                <p>&nbsp;&nbsp;&nbsp;访问/member/index.php?uid=000001，获取cookie中的last_vid__ckMd5。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-1-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;设置cookie['DeDeUserID_ckMd5']为cookie['last_vid__ckMd5']的值，
+                	cookie['DedeUserID']为000001，成功从前台登录admin。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-1-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;找到/include/memberlogin.class.php，可以看到这里通过GetCookie("DedeUserID")去获取cookie。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-1-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下GetCookie("DedeUserID")函数，可以看到这里还对cookie字段的字检验了hash salt，
+                	防止直接伪造cookie，注意看这里的校验方式是substr(md5($cfg_cookie_encode.$_COOKIE[$key]),0,16)。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-1-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;既然防止直接伪造cookie，那就应该依靠cms本身的功能生成一个可以利用的cookie以及校验它的hash salt。
+                	这里看到/member/index.php，用了PutCookie('last_vid', $last_vid, 3600*24, '/')方法来生成cookie。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-1-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下PutCookie()函数，可以看到这里用substr(md5($cfg_cookie_encode.$_COOKIE[$key]),0,16)生成cookie['last_vid__ckMd5']。
+                	所以，可以利用这里来伪造需要满足substr(md5($cfg_cookie_encode.$_COOKIE[$key]),0,16)校验的cookie。
+                	这就解释了为什么要在member/index.php拿取cookie['last_vid__ckMd5']赋值给cookie['DeDeUserID_ckMd5']。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-1-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;在设置cookie['DeDeUserID_ckMd5']为cookie['last_vid__ckMd5']，
+                	以及cookie['DedeUserID']为000001后，这里GetCookie['DedeUserID']就变为000001，
+                	并且经过同样加密方式伪造的cookie['last_vid__ckMd5']也能经过校验。</p>
+                <p>&nbsp;&nbsp;&nbsp;也就是说，170行的$this->M_ID的值其实为账户的用户名。
+                	再看到178行，$this->M_ID还经过了intval()函数的洗礼。
+                	而一般系统中admin管理员的ID都为1，所以只需要注册一个满足intval(用户名) = 1的用户即可伪造admin登录。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-1-5.jpg" alt="">
+                </a>
+                
+                
+                
+                
 
 
 
