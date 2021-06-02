@@ -66,7 +66,7 @@
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
                     <h1>DEDECMS V5.7漏洞分析</h1>
-                    <h2 class="subheading">越权漏洞组合拳，后台代码执行漏洞，文件上传漏洞</h2>
+                    <h2 class="subheading">越权漏洞组合拳，后台代码执行漏洞</h2>
                     <span class="meta">Posted by
               <a href="#">SEVENTEEN</a>
               on June 1, 2021</span>
@@ -169,6 +169,11 @@
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-5.jpg" alt="">
                 </a>
                 
+                <h2 class="section-heading">修复方案</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;(1) 检测用户名，不允许注册或修改为intval()后为userid的用户名。</p>
+                <p>&nbsp;&nbsp;&nbsp;(2) 注释掉/member/index.php 161-162行的两个Putcookie()函数，使之不可以伪造。</p>
+                
                 <h2 class="section-heading">前台任意用户密码修改</h2>
                 
                 <p>&nbsp;&nbsp;&nbsp;首先登录一个用户，接着构造请求/member/resetpassword.php?dopost=safequestion&safequestion=0e123&safeanswer=&id=3
@@ -236,6 +241,10 @@
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-9.jpg" alt="">
                 </a>
                 
+                <h2 class="section-heading">修复方案</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;将/member/resetpassword.php 第84行中的弱比较改为强比较。</p>
+                
                 <h2 class="section-heading">修改后台管理员密码</h2>
                 
                 <p>&nbsp;&nbsp;&nbsp;看到管理员修改密码的代码段，可以看出一旦admin在前台修改了密码，
@@ -245,6 +254,10 @@
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-1/pop-3-1.jpg" alt="">
                 </a>
+                
+                <h2 class="section-heading">修复方案</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;设置难以被探测到的后台地址名，处理好(隐藏)跳转到后台地址的功能。</p>
                 
                 <h2 class="section-heading">后台代码执行漏洞[CVE-2018-7700]</h2>
                          
@@ -347,25 +360,19 @@
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-16.jpg" alt="">
                 </a>
                 
-
-
-
-
-
-
-                <h2 class="section-heading">文件上传漏洞</h2>
-
-                <p>&nbsp;&nbsp;&nbsp;上面通过组合拳的形式来拿到shell，那其实也有个漏洞可以直接从前台文件上传的点来拿shell。
-                    看到</p>
-
-                <a href="#">
-                    <img class="img-fluid" src="../img/2021-6-1/pop-4-1.jpg" alt="">
-                </a>
-
-
+                <h2 class="section-heading">payload</h2>
                 
+                <div>
+                	
+                	<pre class='hljs'><code><span class="hljs-string">GET:</span> <span class="hljs-regexp">/dede/</span>tag_test_action.php?token={upload_csrf_token}&amp;partcode={dede:field name=<span class="hljs-string">'source'</span> runphp=<span class="hljs-string">'yes'</span>}phpinfo();{/<span class="hljs-string">dede:</span>field}
+# {upload_csrf_token}需要换成/dede/tpl.php?action=upload前端的token</code></pre>
+                	
+                </div>
                 
+                <h2 class="section-heading">修复方案</h2>
                 
+                <p>&nbsp;&nbsp;&nbsp;(1) 改写csrf_check()函数。</p>
+                <p>&nbsp;&nbsp;&nbsp;(2) 标签中禁用php接口。</p>
                 
 
 
