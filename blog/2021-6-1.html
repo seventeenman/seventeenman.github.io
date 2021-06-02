@@ -246,14 +246,107 @@
                     <img class="img-fluid" src="../img/2021-6-1/pop-3-1.jpg" alt="">
                 </a>
                 
-                <h2 class="section-heading">后台代码执行漏洞</h2>
+                <h2 class="section-heading">后台代码执行漏洞[CVE-2018-7700]</h2>
+                         
                 
                 <p>&nbsp;&nbsp;&nbsp;既然已经能拿到后台管理员的密码，那么就需要进一步拿网站的shell了。
-                	看到</p>
+                	首先看到/dede/tag_test_action.php，这里有一个csrf_check()函数进行csrf token检验。
+                	所以，这里需要伪造一下csrf token。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下csrf_check()函数，查看一下csrf token的参数是token。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;访问上传点dede/tpl.php?action=upload，在前端找一下csrf token的值。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;带着csrf token的值去请求一下。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-1.jpg" alt="">
                 </a>
+                <span class="caption text-muted">令token=cee74ee80b8a45f04d9d591374ec3df0</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;csrf_check()函数绕过后来到$pv->SetTemplet($partcode, "string")。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下$pv->SetTemplet($partcode, "string")，这里进入了$this->dtp->LoadSource($temp)。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下$this->dtp->LoadSource($temp)，可以看到payload被存入inc文件，
+                	继续跟进$this->LoadTemplate($filename)。</p>
+                
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到$this->LoadTemplate($filename)，这里先将inc文件中每行内容拿出来赋值给$this->SourceString，
+                	感觉没什么用。跟踪变量的流向，跟进到下面的$this->LoadCache($filename)。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-9.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到$this->LoadCache($filename)，这里将payload写入缓冲，等待类去读取内容。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-10.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接下来来看一下，如何去触发解析这个写在缓冲中的payload。
+                	回到开头那个文件的最后一行，这里调用了$pv->Display()函数。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-11.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下$pv->Display()函数，可以看到调用了$this->dtp->Display()函数。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-12.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;查看一下$this->dtp->Display()，发现调用了$this->GetResult()函数。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-13.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下$this->GetResult()，自然而然地调用$this->AssignSysTag()函数。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-14.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里判断缓冲区中的payload是否有运行runphp接口的标志，有的话进入$this->RunPHP($CTag, $i)。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-15.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令rpartcode={dede:field name='source' runphp='yes'}phpinfo();{/dede:field}</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;进入$this->RunPHP($CTag, $i)，成功eval执行payload。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-4-16.jpg" alt="">
+                </a>
+                
 
 
 
