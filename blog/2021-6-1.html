@@ -169,13 +169,80 @@
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-5.jpg" alt="">
                 </a>
                 
+                <h2 class="section-heading">前台任意用户密码修改</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;首先登录一个用户，接着构造请求/member/resetpassword.php?dopost=safequestion&safequestion=0e123&safeanswer=&id=3
+                	(id为要修改密码的账户id)。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-2-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到安全问题的代码段，可以看到84行的$safequestion跟$safeanswer通过弱比较判断。
+                	所以，只要控制好这两个变量就能进入sn($mid, $row['userid'], $row['email'], 'N')函数。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-2-2.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令dopost=safequestion&safequestion=0e123&safeanswer=&id=3</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;来后台管理系统查看一下安全问题的默认值，可以看到$safequestion=0，$safeanswer为空。
+                	所以，令safequestion=0e123&safeanswer=即可进入sn($mid, $row['userid'], $row['email'], 'N')函数。</p>
+                
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-2-3.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;进入sn($mid, $row['userid'], $row['email'], 'N')函数后，判断是否已经生成随机密码。
+                	如果已生成，进入160行的newmail()函数；如果未生成，进入165行的newmail()函数。
+                	这里因为我前面已经测试过了，所以会进入165行，但其实结果都一样。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-2-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下newmail()函数，可以看到这里通过random()函数生成一个八位随机数密码。
+                	这里虽然看起来要爆破，但在94行的位置直接将randval传入$_GET['key']参数中。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-2-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;如果在上面判断已生成随机密码，则会走到这里的$type == 'UPDATE'分支。
+                	结果也是在116行直接将randval传入$_GET['key']参数中。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-2-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接下来会带着这个$_GET['key']跳转到修改密码页面，相当于跳过了身份验证的环节。
+                	不过需要注意这里的url中会带有实体编码的&即&amp;amp;，需要手动去除。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-2-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;最后，跳转到修改密码的页面进行修改密码即可。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-2-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里是修改密码的代码段。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-1/pop-2-9.jpg" alt="">
+                </a>
+                
                 
                 
                 
 
 
 
-								<h2 class="section-heading">前台任意用户密码修改</h2>
+								
 								
 								
 								
