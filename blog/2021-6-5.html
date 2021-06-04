@@ -84,7 +84,8 @@
 
                 <h2 class="section-heading">前言</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;没错，这个又是比赛遇到的cms，借此来分析一下。</p>
+                <p>&nbsp;&nbsp;&nbsp;没错，这个又是比赛遇到的cms，借此来分析一下。
+                	不过，我个人对laravel这个框架不是很熟，看着开发手册跟调试复现的。</p>
 
                 <h2 class="section-heading">配置环境</h2>
 
@@ -94,6 +95,83 @@
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-5/install.jpg" alt="">
                 </a>
+                
+                <h2 class="section-heading">v1.3.5任意文件读写漏洞</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;首先到GitHub下载v1.3.5，v1.3.7，按github上面的安装流程装就可以了，记得配置.env文件。
+                	(把git_repository_url换成git clone https://github.com/eddy8/LightCMS.git -b v1.3.5)</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/install.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">任意文件读取</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里的前提条件是已经登录后台管理员，然后构造一个POST请求/admin/neditor/serve/catchImage，
+                	填写的file参数是要读取文件路径。响应成功，返回了请求资源保存的路径。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-1-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;访问请求资源保存的路径，成功获取到数据。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-1-2.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">任意文件写入</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;同上面的请求包，不同的是file参数改为vps上的文件。响应成功，vps上的文件成功写入目标。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-1-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;访问请求资源保存的路径，从vps上保存过来的php文件解析成功。
+                	所以，也可以在vps上写个马，通过file参数读取并保存到目标。从而达到getshell的目的。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-1-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里对源码进行分析，看到NEditorController控制器中的serve()方法。
+                	可以看出请求的路由通过call_user_func()函数去调用方法。该漏洞请求调用的是catchImage()方法。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-1-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到catchImage()方法。这里用file_get_contents()函数获取资源后，再调用put()方法进行保存。
+                	本来看到parse_url()函数，以为要绕过。
+                	结果，这里直接用获取请求资源的后缀名，并且以该后缀名保存请求的资源，没有任何过滤处理。
+                	这也解释了为什么请求vps上的php文件，保存到本地后会被解析。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-1-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下put()方法，看一下是怎么保存的。
+                	可以看到这里判断资源类型后，直接调用$this->driver->put($path, $contents, $options)进行保存。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-1-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来看一下补丁怎么处理这个漏洞，可以看到首先对后缀名进行判断以及限制。
+                	并且，把file_get_contents()函数改为了fetchImageFile()方法(作者写的一个用curl获取image文件对象的方法，并且在里面限制的请求到的资源)，
+                	来限制远程获取资源的文件类型。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-1-8.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">v1.3.7RCE漏洞</h2>
+                
+                
+                
+                
+                
                 
 
 
