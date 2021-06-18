@@ -66,7 +66,7 @@
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
                     <h1>BAOCMS 漏洞分析</h1>
-                    <h2 class="subheading">任意文件读取漏洞</h2>
+                    <h2 class="subheading">任意文件读取漏洞，sql注入，鸡肋ssrf</h2>
                     <span class="meta">Posted by
               <a href="#">SEVENTEEN</a>
               on June 18, 2021</span>
@@ -171,14 +171,44 @@
                     <img class="img-fluid" src="../img/2021-6-18/payload.jpg" alt="">
                 </a>
                 
-                <h2 class="section-heading"></h2>
-              
-              
-              
+                <h2 class="section-heading">ThinkPHP3.X where() sql注入</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-1.jpg" alt="">
+                </a>
                 
                 
-
-
+                
+                
+                
+                
+                
+                
+                
+                <h2 class="section-heading">鸡肋ssrf</h2>
+                
+              	<p>&nbsp;&nbsp;&nbsp;这里有个curl_exec()来ssrf攻击，但可惜的是没有回显。
+              		构造payload：/api/user/httpRequest?url=。
+              		这里能打的可能性不是很大，除非是很熟悉目标内网应用架构。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-3-1.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">失败的xxe注入</h2>
+                
+              	<p>&nbsp;&nbsp;&nbsp;审计了一个xxe的点，很可惜第三个参数为LIBXML_NOCDATA，输出的是对象。
+              		(第三个参数是LIBXML_NOENT的话，可以利用)</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/fail.jpg" alt="">
+                </a>
+              	
+              	
+              	
+              
                 <h2 class="section-heading">There Is Nothing Below</h2>
                 <p>&nbsp;&nbsp;&nbsp;</p>
 
