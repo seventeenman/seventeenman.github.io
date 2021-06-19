@@ -171,15 +171,79 @@
                     <img class="img-fluid" src="../img/2021-6-18/payload.jpg" alt="">
                 </a>
                 
-                <h2 class="section-heading">ThinkPHP3.X where() sql注入</h2>
+                <h2 class="section-heading">前台ThinkPHP3.X where() sql注入</h2>
                 
-                <p>&nbsp;&nbsp;&nbsp;</p>
+                <p>&nbsp;&nbsp;&nbsp;这里可以得到这个cms基于TP3框架开发，翻了翻笔记发现这个版本有几个sql注入。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/tp3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;果然，这里两个接口都有一样的问题，拿其中一个灰盒测试一下。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-18/pop-2-1.jpg" alt="">
                 </a>
                 
+                <p>&nbsp;&nbsp;&nbsp;构造cid[0]=exp&cid[1]==1 and sleep(5) -- a，确认是个注入点。</p>
                 
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/sql.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;常规闭合测列数。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以得出列数有13。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;一套常规流程拿到后台管理员密码。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;md5解密是123456。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;也可以读文件啦！</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;sql最高权限。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;查询secure_file_priv也符合写shell的条件，并且没有目录限制。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;现在来分析一下TP3的where()注入源码。(之前我是觉得TP3的sql注入挺鸡肋的，只是大概看了下就没有去细致分析)</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-9.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-10.jpg" alt="">
+                </a>
                 
                 
                 
@@ -199,7 +263,7 @@
                 
                 <h2 class="section-heading">失败的xxe注入</h2>
                 
-              	<p>&nbsp;&nbsp;&nbsp;审计了一个xxe的点，很可惜第三个参数为LIBXML_NOCDATA，输出的是对象。
+              	<p>&nbsp;&nbsp;&nbsp;审计了一个xxe的点，很可惜第三个参数为LIBXML_NOCDATA，输出的是对象，也没有对实体进行解析。
               		(第三个参数是LIBXML_NOENT的话，可以利用)</p>
                 
                 <a href="#">
