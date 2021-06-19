@@ -286,8 +286,9 @@
                 <h2 class="section-heading">文件包含漏洞</h2>
                 
                 <p>&nbsp;&nbsp;&nbsp;从前台的show()方法跟display()方法，再到后台的settings()方法，
-                	都可以进行文件包含。不过需要注意的是只有前台的show()方法没有经过$this->parseTemplate()方法检查，
-                	可以任意读取文件，其它的几个方法都会被$this->parseTemplate()方法拼接.html导致读取文件拼接后缀，
+                	都可以进行文件包含。</p> 
+                <p>&nbsp;&nbsp;&nbsp;不过需要注意的是只有前台的show()方法没有经过$this->parseTemplate()方法检查，
+                	才可以任意读取文件，因为其它的几个方法都会被$this->parseTemplate()方法拼接.html后缀导致读取文件失败，
                 	需要搭配一个同名的html文件才能利用。</p>                
                 
                 <h2 class="section-heading">鸡肋ssrf</h2>
