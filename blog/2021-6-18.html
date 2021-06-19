@@ -111,7 +111,7 @@
                 </a>
                 
                 
-                <p>&nbsp;&nbsp;&nbsp;定位到wap下到common方法，可以看到这里有display()，功能大概是解析模版，
+                <p>&nbsp;&nbsp;&nbsp;定位到wap下到common方法，可以看到这里有show()，功能大概是解析模版，
                 	这个地方一般都有文件包含漏洞。</p>
                 
                 <a href="#">
@@ -282,26 +282,13 @@
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-18/pop-2-13.jpg" alt="">
                 </a>
-
-                <h2 class="section-heading">后台登录ThinkPHP3.X where() sql注入</h2>
-
                 
+                <h2 class="section-heading">文件包含漏洞</h2>
                 
-                
-                
-                
-                
-                
-                <h2 class="section-heading">后台管理系统写入文件搭配文件包含</h2>
-                
-                
-                
-                
-                
-                
-                
-                
-                
+                <p>&nbsp;&nbsp;&nbsp;从前台的show()方法跟display()方法，再到后台的settings()方法，
+                	都可以进行文件包含。不过需要注意的是只有前台的show()方法没有经过$this->parseTemplate()方法检查，
+                	可以任意读取文件，其它的几个方法都会被$this->parseTemplate()方法拼接.html导致读取文件拼接后缀，
+                	需要搭配一个同名的html文件才能利用。</p>                
                 
                 <h2 class="section-heading">鸡肋ssrf</h2>
                 
