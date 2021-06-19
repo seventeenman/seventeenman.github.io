@@ -66,7 +66,7 @@
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
                     <h1>BAOCMS 漏洞分析</h1>
-                    <h2 class="subheading">任意文件读取漏洞，sql注入，鸡肋ssrf</h2>
+                    <h2 class="subheading">任意文件读取漏洞，Thinkphp 3.2.x SQL注入，鸡肋ssrf</h2>
                     <span class="meta">Posted by
               <a href="#">SEVENTEEN</a>
               on June 18, 2021</span>
@@ -239,11 +239,63 @@
                     <img class="img-fluid" src="../img/2021-6-18/pop-2-9.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;</p>
+                <p>&nbsp;&nbsp;&nbsp;跑了一段，跟随变量来到可疑的parseWhere()方法。
+                	可以看到这里的foreach将payload数组中的内容作为数组，传入parseWhereItem()方法。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-18/pop-2-10.jpg" alt="">
                 </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下parseWhereItem()方法，取第一个元素作为表达式(这里表达式即为exp)，
+                	如果你输入别的内容页面是会回显表达式错误的。然后进入elseif分支，将数组第二个元素拼接进sql语句。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-11.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;从这里也可以看到拼接成利用的sql语句。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-12.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;分析到这里，还是不知道为什么要以数组的形式传payload，从而达到sql注入。
+                	所以，我传了一个cid=1))-- a，康康这个数组到底是绕过哪个地方。</p>
+                	
+                <p>&nbsp;&nbsp;&nbsp;对比了一下代码执行流程，很快发现了问题所在。
+                	这里用is_scalar()函数判断是否进入_parseType()方法。</p>	
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-14.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;查了一下手册，当传入的是数组的时候，这个函数返回为false，
+                	所以payload不会进入_parseType()方法。那么肯定在_parseType()方法里有过滤payload的地方。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-15.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;进入这个函数跑一跑，可以看到这里有个intval()函数来过滤payload。
+                	所以当payload不是数组的时候，构造的恶意语句会被intval()函数变为数字。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-18/pop-2-13.jpg" alt="">
+                </a>
+
+                <h2 class="section-heading">后台登录ThinkPHP3.X where() sql注入</h2>
+
+                
+                
+                
+                
+                
+                
+                
+                <h2 class="section-heading">后台管理系统写入文件搭配文件包含</h2>
+                
+                
+                
                 
                 
                 
