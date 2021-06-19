@@ -111,8 +111,8 @@
                 </a>
                 
                 
-                <p>&nbsp;&nbsp;&nbsp;定位到wap下到common方法，可以看到这里有show()，功能大概是解析模版，
-                	这个地方一般都有文件包含漏洞。</p>
+                <p>&nbsp;&nbsp;&nbsp;定位到wap下到common控制器，可以看到这里有show()，功能大概是解析模版，
+                	这个功能点一般都有文件包含漏洞。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-18/pop-2.jpg" alt="">
@@ -164,8 +164,8 @@
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;构造payload读取文件成功，但上面的file_get_contents()跟include()这个搭配在很多写shell的漏洞中可以看到。
-                	一般实战这种cms也是放在公网上的，那么是否可以尝试获取vps上的内容来include呢。
-                	答案是不可以的，因为这里的利用点先经过了is_file()的判断。</p>
+                	一般实战这种cms也是放在公网上的，那么是否可以尝试获取vps上的内容来include呢。</p>
+                <p>&nbsp;&nbsp;&nbsp;答案是不可以的，因为这里的利用点先经过了is_file()的判断。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-18/payload.jpg" alt="">
