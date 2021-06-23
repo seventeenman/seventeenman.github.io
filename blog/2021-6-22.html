@@ -66,7 +66,7 @@
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
                     <h1>discuz! x3.4 漏洞分析</h1>
-                    <h2 class="subheading">从任意文件删除漏洞到getshell</h2>
+                    <h2 class="subheading">从任意文件删除漏洞到苛刻的getshell，后台SQL注入</h2>
                     <span class="meta">Posted by
               <a href="#">SEVENTEEN</a>
               on June 22, 2021</span>
@@ -127,7 +127,7 @@
                 <div>
                 	
                 	<pre class='hljs'><code>&lt;body&gt;
-    &lt;form action=<span class="hljs-string">"http://[网站域名]/home.php?mod=spacecp&amp;ac=profile&amp;op=base&amp;profilesubmit=1&amp;formhash=[刚刚得到的formhash]"</span> <span class="hljs-keyword">method</span>=<span class="hljs-string">"post"</span> enctype=<span class="hljs-string">"multipart/form-data"</span>&gt;
+    &lt;form action=<span class="hljs-string">"http://[网站域名]/home.php?mod=spacecp&amp;profilesubmit=1&amp;formhash=[刚刚得到的formhash]"</span> <span class="hljs-keyword">method</span>=<span class="hljs-string">"post"</span> enctype=<span class="hljs-string">"multipart/form-data"</span>&gt;
         &lt;input <span class="hljs-keyword">type</span>=<span class="hljs-string">"file"</span> name=<span class="hljs-string">"birthprovince"</span> /&gt;
         &lt;input <span class="hljs-keyword">type</span>=<span class="hljs-string">"submit"</span> value=<span class="hljs-string">"upload"</span> /&gt;
     &lt;/form&gt;
@@ -142,30 +142,165 @@
                     <img class="img-fluid" src="../img/2021-6-22/pop-5.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;可以看到uc_server/data目录下的install.lock已经被删除啦！</p>
+                <p>&nbsp;&nbsp;&nbsp;可以看到data目录下的install.lock已经被删除啦！</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-22/pop-6.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;来看一下在源码里面到底发生了什么。</p>
+                <p>&nbsp;&nbsp;&nbsp;来看一下在源码里面到底发生了什么。首先来到source/include/spacecp/spacecp_profile.php，这里有个submitcheck('profilesubit')需要绕过。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-22/pop-7.jpg" alt="">
                 </a>
                 
+                <p>&nbsp;&nbsp;&nbsp;进来submitcheck()函数之后会进入getgpc()函数，这里需要通过get对profilesubmit传参，var才能获取到其它的get参数。
+                	这就解释了为什么上传文件那个payload中的url带有profilesubmit参数。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/profilesubmit.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令profilesubmit=1</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，回调submitcheck()函数，可以看到要满足if的条件才能返回一个TRUE。
+                	可以看到这里对formhash进行了校验，所以在刚刚上传文件那个payload中的url带上从前端获取的formhash。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-8.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令formhash为前端获取的formhash。</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;这个地方的unlink是补丁前的利用点，补丁添加了formtype的判断，
+                	导致这个unlink不可以利用。不过，下面还有一个unlink可以利用。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-9.jpg" alt="">
+                </a>       
                 
                 
-                
-                
-                
-                
+                <p>&nbsp;&nbsp;&nbsp;上传文件后会进入这个if语句中，先是if判断是否上传失败，成功的话往if里面走。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-13.jpg" alt="">
+                </a>
                 
 
-								<h2 class="section-heading">后台getshell漏洞</h2>
+                <p>&nbsp;&nbsp;&nbsp;接着，这里对更新前的个人资料做unlink处理，这就解释了为什么要在个人设置中找到一个可控的出生地(birthprovine)，
+                	并且把它赋值为要删除文件的相对路径。所以，这里删除的就是我们一开始在burpsuite中构造的出生地(birthprovince)。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-15.jpg" alt="">
+                </a>
+                          
+                
+                <p>&nbsp;&nbsp;&nbsp;然后在这里开始对数据库内容进行update处理，构造update的sql语句。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-16.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;执行update的sql语句，将个人资料出生地变为照片的相对路径。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-17.jpg" alt="">
+                </a>
+                
+       
+
+								<h2 class="section-heading">重装getshell漏洞</h2>
 								
-								<p>&nbsp;&nbsp;&nbsp;访问url，进入重装页面。不过这里不知道数据库的账号密码，实战中可以尝试下root或者123456这类弱密码。
-									实在不行的话，牺牲一下自己的vps，远程连接自己的数据库。(毕竟拿shell血赚不亏)</p>
+								<p>&nbsp;&nbsp;&nbsp;访问/install/index.php，进入重装页面，将数据表前缀改为x');phpinfo();('。不过这里不知道数据库的账号密码，实战中可以尝试下root或者123456这类弱密码。
+									实在不行的话，牺牲一下自己的vps，远程连接自己的数据库(毕竟拿shell血赚不亏)。</p>
+								<p>&nbsp;&nbsp;&nbsp;不过这里有一个前提条件需要注意，目标网站需要没登录过后台。因为登录后台后会把install/index.php删除导致不能重装，
+									所以拿到站，最好先访问/install/index.php，看看能不能通过重装getshell再决定要不要打payload。</p>	
+									
+
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-2-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;访问config/config_ucenter.php就可以执行插入的payload了。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-2-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;审计一下源码，可以看到进入了203行的elseif分支。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-2-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，进入install_uc_server()函数。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-2-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;调用save_uc_config()函数保存配置。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-2-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到这里没有任何的过滤就直接写入php配置文件，所以只要闭合')即可代码注入。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-2-7.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">后台SQL注入</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;注入点在后台的UCenter应用id处。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-3-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;构造报错注入payload，页面成功回显。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-3-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到后台设置的代码段。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-3-3.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到这里对输入的id进行了addslashes()转义处理。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-3-5.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;这里读取配置文件，对配置缓存进行了更新。
+                	而问题在于此处读取时没有再次转义，转义符号在读取的时候已被解析，造成了二次注入。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-3-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;note_exists()函数通过result_first()函数将配置内容select出来。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-3-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;从result_first()函数执行的sql语句，也可以看到转义符号已经被解析，构造了SQL注入的payload。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-6-22/pop-3-8.jpg" alt="">
+                </a>
+
+
+
+
+
 
 
 
