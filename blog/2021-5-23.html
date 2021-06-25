@@ -114,7 +114,8 @@
                 <h2 class="section-heading">利用链1</h2>
                 
                 <p>&nbsp;&nbsp;&nbsp;利用点位于
-                	thinkphp/library/think/Container.php::invokeFunction()</p>
+                	thinkphp/library/think/Container.php::invokeFunction()，
+                	这个利用链其实需要利用一个反射的点去实例化url参数中的对象并调用该方法。</p>
                 	
                 	
                 <a href="#">
@@ -143,7 +144,8 @@
                     <img class="img-fluid" src="../img/2021-5-23/pop-4.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;可以看到从$this->pathinfo()获取$pathinfo的值，即传给s的参数。</p>
+                <p>&nbsp;&nbsp;&nbsp;可以看到从$this->pathinfo()获取$pathinfo的值，
+                	thinkphp有四种路由解析方式，$this->pathinfo()其实就是去配置文件中找到相应的解析方式，这里获取的是传给s的参数。</p>
                 	
                 	
                 <a href="#">
@@ -151,7 +153,7 @@
                 </a>
                 
                 
-                <p>&nbsp;&nbsp;&nbsp;返回后进入$this->route->check($path, $must)进行路由检测。</p>
+                <p>&nbsp;&nbsp;&nbsp;返回后带着上面获取到的$path参数进入$this->route->check($path, $must)进行路由检测。</p>
                 	
                 	
                 <a href="#">
@@ -159,7 +161,7 @@
                 </a>
                 
                 
-                <p>&nbsp;&nbsp;&nbsp;跟进实例化后的UrlDispatch对象查看路由解析。</p>
+                <p>&nbsp;&nbsp;&nbsp;跟进实例化后的UrlDispatch对象查看路由解析，注意看这里的$url参数，即刚刚传入的$path参数。</p>
                 	
                 	
                 <a href="#">
@@ -193,7 +195,7 @@
                     <img class="img-fluid" src="../img/2021-5-23/pop-11.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;返回分割后的路由。</p>
+                <p>&nbsp;&nbsp;&nbsp;在parseUrl()方法中返回分割后的路由，这里其实就是将传入的s参数进行路由解析前的分割。</p>
                 	                	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-23/pop-12.jpg" alt="">
@@ -205,7 +207,7 @@
                     <img class="img-fluid" src="../img/2021-5-23/pop-13.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;回到刚开始的App::run()继续往下走，走到return is_null($data) ? $dispatch->run() : $data;，
+                <p>&nbsp;&nbsp;&nbsp;回到刚开始的App::run()继续往下走，走到return is_null($data) ? $dispatch->run() : $data，
                 	因为$data为null，所以会进入$dispatch->run()，而这个$dispatch已经在前面赋值为实例化后的Module类。</p>
                 	                	
                 <a href="#">
@@ -224,20 +226,21 @@
                     <img class="img-fluid" src="../img/2021-5-23/pop-16.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;从注释中也可以得到此处将实例化类，这里先调用了$this->parseModuleAndClass($name, $layer, $appendSuffix)。</p>
+                <p>&nbsp;&nbsp;&nbsp;从注释中也可以得到此处将实例化类的信息，这里先调用了$this->parseModuleAndClass($name, $layer, $appendSuffix)。</p>
                 	                	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-23/pop-17.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;$this->parseModuleAndClass()方法会返回模块跟类名，然后判断是否存在后调用__get()跟make()方法进行实例化。</p>
+                <p>&nbsp;&nbsp;&nbsp;$this->parseModuleAndClass()方法会返回模块跟类名，返回后会判断是否存在回调，
+                	再用__get()跟make()方法进行实例化。</p>
                 	                	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-23/pop-18.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;返回Module::exec()方法，下半部分获取了操作名，即要实例化的类的方法以及绑定参数。
-                	接着，调用$this->app->invokeReflectMethod()方法进行反射。</p>
+                <p>&nbsp;&nbsp;&nbsp;返回Module::exec()方法，看注释也可以得出下半部分获取了操作名，即要实例化的类的方法以及绑定参数。
+                	接着，再调用$this->app->invokeReflectMethod()方法进行反射。即能够实例化任意对象跟调用其方法，并且参数可控。</p>
                 	                	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-23/pop-19.jpg" alt="">
@@ -260,14 +263,15 @@
                 
                 <h2 class="section-heading">利用链2</h2>
                 
-                <p>&nbsp;&nbsp;&nbsp;既然这里通过路由可以实例化类跟调用方法，那么只要找到其它触发点即可构成POP链。
-                	回到TP5.0.x的rce链，找到thinkphp/library/think/Request.php::input()。</p>
+                <p>&nbsp;&nbsp;&nbsp;既然这里通过路由可以实例化类跟调用方法，又可以控制参数。那么只要找到其它触发点即可构成POP链。
+                	回到TP5.0.x的rce链，找到thinkphp/library/think/Request.php::input()。
+                	这里实例化input()方法，再控制其参数data数组和filter。</p>
                 	                	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-23/pop-2-1.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;进入filterValue()方法后，触发call_user_func($filter, $value)命令执行。</p>
+                <p>&nbsp;&nbsp;&nbsp;带着控制的参数data数组和filter进入filterValue()方法后，触发call_user_func($filter, $value)命令执行。</p>
                 	                	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-23/pop-2-2.jpg" alt="">
@@ -285,7 +289,8 @@
 								
 								<h2 class="section-heading">利用链3</h2>
 								
-								<p>&nbsp;&nbsp;&nbsp;在thinkphp/library/think/template/driver/File.php::write()也有一个file_put_contents()可以用来写shell。</p>
+								<p>&nbsp;&nbsp;&nbsp;在thinkphp/library/think/template/driver/File.php::write()也有一个file_put_contents()可以用来写shell。
+									也是通过路由实例化类跟调用方法，并且控制参数。</p>
                 	                	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-23/pop-3-1.jpg" alt="">

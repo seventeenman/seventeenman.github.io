@@ -120,15 +120,15 @@
                 
                 
                 <p>&nbsp;&nbsp;&nbsp;查看一下filterValue方法的调用情况，
-                	可以看到无论$data是不是数组最终都会调用filterValue方法，
-                	而$filter通过过滤器$this->getFilter($filter, $default)方法来获取。</p>
+                	可以看到无论$data是不是数组最终都会调用filterValue方法(但其实在后面的param()方法会把$data变成数组)，
+                	而$filter通过1023行的过滤器$this->getFilter($filter, $default)方法来获取。</p>
 									
 								<a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-3.jpg" alt="">
                 </a>
 
-								<p>&nbsp;&nbsp;&nbsp;查看一下getFilter方法，可见$filter为空时，
-									将$this->filter赋值给$filter。最后filter[] = $default，
+								<p>&nbsp;&nbsp;&nbsp;查看一下getFilter方法，这里默认$filter为空，
+									所以将$this->filter赋值给$filter。最后filter[] = $default，
 									即给filter[]添加一组空数据。所以，返回的其实是 [$this->filter,null]。</p>
 									
 								<a href="#">
@@ -137,7 +137,7 @@
                 
                 <p>&nbsp;&nbsp;&nbsp;回到input()方法，这里的array_walk_recursive($data, [$this, 'filterValue'], $filter)，
                 	意思是将$filter传入$this->filterValue()，再将$data中每一个元素使用$this->filterValue()。
-                	$filter为回调函数名，$data为传入回调函数的参数。</p>
+                	(上面分析过call_user_func的参数，$filter为回调函数名，$data为传入回调函数的参数)。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-5.jpg" alt="">
@@ -145,23 +145,26 @@
                 
                 
                 <p>&nbsp;&nbsp;&nbsp;查看一下input()方法的调用情况，康康传入$data是什么。
-                	来到同文件下的param方法，可以看出$data是请求参数和URL地址中的参数合并后的数组。
+                	来到同文件下的param方法，可以看出无论在659行还是661行的return中调用input()方法，
+                	$data总是652行的$this->param，即请求参数和URL地址中的参数合并后的数组。
                 	接着来看一下怎么控制$filter(回调函数名)跟$data(回调函数参数)就可以了。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-6.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;来到同文件下的method方法，当$this->method为false时，
-                	我们可以控制$this->method的值，即可以任意调用Request类中存在的任何方法。
-               		在配置文件中，Config::get('var_method')在默认情况下是_method。</p>
+                <p>&nbsp;&nbsp;&nbsp;来到同文件下的method方法，$this->method默认为false，          	
+               		并且在配置文件中，Config::get('var_method')在默认情况下是_method，所以总会进入524行的if条件中。
+               		而在526行的$this->{$this->method}($_POST)，
+               		我们可以控制$this->method的值，即可以任意调用Request类中存在的任何方法以及控制传入的参数。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-7.jpg" alt="">
                 </a>
                 
                 
-                <p>&nbsp;&nbsp;&nbsp;可以通过调用Request类的__construct方法来控制回调函数和参数。</p>
+                <p>&nbsp;&nbsp;&nbsp;既然可以任意调用Request类中存在的任何方法以及控制传入的参数，
+                	那么就可以调用Request类的__construct方法来控制变量，即能控制利用点call_user_func()函数中的回调函数跟参数。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-8.jpg" alt="">
@@ -191,7 +194,7 @@
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;查看一下Hook::listen('app_dispatch', self::$dispatch)，
-                	调试了一下，self::$dispatch为空。所以，能调用$request->method()方法。</p>
+                	调试了一下，self::$dispatch默认为空。所以，能调用$request->method()方法。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-12.jpg" alt="">
@@ -215,8 +218,8 @@ POST: <span class="hljs-title">_method</span>=__construct&amp;<span class="hljs-
                 	
                 </div>
                 
-                <p>&nbsp;&nbsp;&nbsp;但在实际渗透中，很多网站并不会开启debug模式，所以还需要找别的利用链调用Request::param。
-                	全局搜索调用情况，还找到了在thinkphp/library/think/App.php::run()中会调用的thinkphp/library/think/App.php::exec()方法，
+                <p>&nbsp;&nbsp;&nbsp;但在实际渗透中，很多网站并不会开启debug模式，所以在上面利用链的基础上，还需要找别的利用点来调用Request::param。
+                	全局搜索调用栈，还找到了在thinkphp/library/think/App.php::run()中会调用的thinkphp/library/think/App.php::exec()方法，
                 	这里需要满足$dispatch['type']==method或者$dispatch['type']==controller时，才会调用param()方法。</p>
                 
                 <a href="#">
