@@ -137,7 +137,7 @@
                 </a>
                 
                 
-                <p>&nbsp;&nbsp;&nbsp;随后进入$this->request->path()获取pathinfo。</p>
+                <p>&nbsp;&nbsp;&nbsp;随后进入$this->request->path()获取pathinfo，赋值给path变量。</p>
                 	
                 	
                 <a href="#">
@@ -161,7 +161,8 @@
                 </a>
                 
                 
-                <p>&nbsp;&nbsp;&nbsp;跟进实例化后的UrlDispatch对象查看路由解析，注意看这里的$url参数，即刚刚传入的$path参数。</p>
+                <p>&nbsp;&nbsp;&nbsp;跟进实例化后的UrlDispatch对象查看路由解析，注意看这里传入check()方法中的$url参数传给了UrlDispatch的类，
+                	即刚刚传入的$path参数。</p>
                 	
                 	
                 <a href="#">
@@ -239,7 +240,7 @@
                     <img class="img-fluid" src="../img/2021-5-23/pop-18.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;返回Module::exec()方法，看注释也可以得出下半部分获取了操作名，即要实例化的类的方法以及绑定参数。
+                <p>&nbsp;&nbsp;&nbsp;返回Module::exec()方法，看99行跟113行注释也可以得出下半部分获取了操作名跟请求变量，即要实例化的类的方法以及绑定参数。
                 	接着，再调用$this->app->invokeReflectMethod()方法进行反射。即能够实例化任意对象跟调用其方法，并且参数可控。</p>
                 	                	
                 <a href="#">

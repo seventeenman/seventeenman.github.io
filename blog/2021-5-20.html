@@ -146,7 +146,8 @@
                 
                 <p>&nbsp;&nbsp;&nbsp;查看一下input()方法的调用情况，康康传入$data是什么。
                 	来到同文件下的param方法，可以看出无论在659行还是661行的return中调用input()方法，
-                	$data总是652行的$this->param，即请求参数和URL地址中的参数合并后的数组。
+                	$data总是652行的$this->param，即请求参数和URL地址中的参数合并后的数组，
+                	所以652行的$this->param中只要控制其中一个就可以了。
                 	接着来看一下怎么控制$filter(回调函数名)跟$data(回调函数参数)就可以了。</p>
                 
                 <a href="#">
@@ -163,8 +164,8 @@
                 </a>
                 
                 
-                <p>&nbsp;&nbsp;&nbsp;既然可以任意调用Request类中存在的任何方法以及控制传入的参数，
-                	那么就可以调用Request类的__construct方法来控制变量，即能控制利用点call_user_func()函数中的回调函数跟参数。</p>
+                <p>&nbsp;&nbsp;&nbsp;既然可以任意调用Request类中存在的任何方法以及通过POST参数控制传入的参数，
+                	那么就可以调用Request类的__construct方法来控制Request类中的变量。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-20/pop-8.jpg" alt="">
@@ -172,6 +173,33 @@
                 <span class="caption text-muted">_method=__construct&filter[]=system&get[]=whoami或者
                 	_method=__construct&filter[]=system&route[]=whoami</span>
 		
+		
+		
+								<p>&nbsp;&nbsp;&nbsp;那么如何控制Request类中的参数，从而控制call_user_func($filter,$value)函数中的参数呢？
+									首先回来看一下$filter参数如何赋值的，上面分析过$filter参数默认为空，会取$this->filter的值。而$this->filter在Request类中，
+									我们令filter[]=system即可控制$this->filter的值。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-4.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令filter[]=system</span>
+                
+                <p>&nbsp;&nbsp;&nbsp;控制了call_user_func($filter,$value)函数中的$filter后，我们还需要控制一下$value的值。
+                	上面分析过，$value其实是$data参数，而$data总是652行的$this->param。</p>
+                <p>&nbsp;&nbsp;&nbsp;所以，只需要控制一下$this->param，
+                	而$this->param通过array_merge()函数去取值，查看一下array_merge()函数中的$this->get()方法跟$this->route()方法。
+                	会发现这两个方法的返回值中总带有$this->get或$this->route，所以要覆盖get或者route参数。
+                	不过这里为什么不覆盖第一个参数$this->param呢？其实你看一下route()方法，
+                	就会发现该方法内对这个变量进行了一次初始化，导致无法控制该参数。
+                	</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-5-20/pop-6.jpg" alt="">
+                </a>
+                <span class="caption text-muted">令get[]=whoami或者route[]=whoami</span>
+								
+								
+								
 								<p>&nbsp;&nbsp;&nbsp;接下来，就需要看一下怎么调用Request类的method方法以及param方法。
 									在thinkphp/library/think/Route.php，调用了$request->method()。</p>
                 
@@ -256,8 +284,9 @@ POST: <span class="hljs-title">_method</span>=__construct&amp;<span class="hljs-
                 
                 <div>
                 	
-                	<pre class='hljs'><code><span class="hljs-type">GET</span>: s=captcha
-<span class="hljs-type">POST</span>: _method=__construct&amp;<span class="hljs-keyword">method</span>=get&amp;filter[]=system&amp;get[]=ls</code></pre>
+                	<pre class='hljs'><code>POST: _method=__construct&amp;<span class="hljs-function"><span class="hljs-keyword">method</span>=<span class="hljs-title">get</span>&amp;<span class="hljs-title">filter</span>[]=<span class="hljs-title">system</span>&amp;<span class="hljs-title">get</span>[]=<span class="hljs-title">ls</span>
+或者
+<span class="hljs-title">POST</span>:</span> _method=__construct&amp;<span class="hljs-function"><span class="hljs-keyword">method</span>=<span class="hljs-title">get</span>&amp;<span class="hljs-title">filter</span>[]=<span class="hljs-title">system</span>&amp;<span class="hljs-title">route</span>[]=<span class="hljs-title">ls</span></span></code></pre>
                 	
                 </div>
                 
