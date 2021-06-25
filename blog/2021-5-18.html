@@ -142,7 +142,7 @@ yii<span class="hljs-command">\rest</span><span class="hljs-command">\CreateActi
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下Generator.php，进入__call方法后，调用了$this->format($method, $attributes)，
-                	查看一下$this->format($method, $attributes)的调用情况。</p>
+                	查看一下$this->format($method, $attributes)同名方法。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-18/pop-3.jpg" alt="">
@@ -151,8 +151,8 @@ yii<span class="hljs-command">\rest</span><span class="hljs-command">\CreateActi
                 
                 <p>&nbsp;&nbsp;&nbsp;将$this->getFormatter($formatter)的返回值作为参数，
                 	传入call_user_func_array($this->getFormatter($formatter), $arguments)。
-                	这里的$this->getFormatter($formatter)可控，而$arguments不可控。
-                	所以我们还需要找一个执行类去回调。</p>
+                	这里的$this->getFormatter($formatter)可控，而$arguments是由__call()方法来的，此处没有传参进来不可控。
+                	所以我们将这个call_user_func_array作为跳板，去找一个执行类去回调。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-5-18/pop-4.jpg" alt="">
