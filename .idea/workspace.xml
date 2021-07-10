@@ -20,6 +20,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="929a2cd3-d981-448d-8979-651deacb31da" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/blog/2021-5-1.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-1.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-5-14.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-14.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-5-18.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-18.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-5-19.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-19.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-5-20.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-20.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-5-23.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-23.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-5-30.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-30.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-5-8.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-5-8.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-6-1.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-6-1.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-6-18.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-6-18.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-6-22.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-6-22.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blog/2021-6-5.html" beforeDir="false" afterPath="$PROJECT_DIR$/blog/2021-6-5.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -169,6 +181,7 @@
       <workItem from="1622618442884" duration="15000" />
       <workItem from="1622619288402" duration="1000" />
       <workItem from="1622619828977" duration="115000" />
+      <workItem from="1625933191787" duration="92000" />
     </task>
     <servers />
   </component>
