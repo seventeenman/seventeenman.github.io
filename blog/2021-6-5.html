@@ -209,17 +209,39 @@
                     <img class="img-fluid" src="../img/2021-6-5/pop-2-6.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;接着，来分析一下源码。</p>
+                <p>&nbsp;&nbsp;&nbsp;接着，来分析一下源码。从v1.3.5版本修复的补丁可以得知一旦请求远程资源时，
+                	会对文件的后缀名进行苛刻的要求，而phar反序列化是没有后缀要求的，所以我们可以通过触发phar反序列化来攻击目标。
+                	从源码中可以看到这里用curl对我们file参数中的url进行了请求，并把获得的内容存放到$data变量。
+                	接着，进入Image::make($data)方法内。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-5/pop-2-7.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;</p>
+                <p>&nbsp;&nbsp;&nbsp;跟随变量流向，可以发现来到了init()方法中进行区分数据的类型。
+                	这里要满足$this->isUrl()才能进入$this->initFromUrl($this->data)方法。
+                	来看一下$this->isUrl()方法该如何满足。</p>
                 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-6-5/pop-2-8.jpg" alt="">
                 </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到通过过滤器filter_var($this->data, FILTER_VALIDATE_URL)进行判断连接$data中的链接是否有效，
+                	这个地方其实卡了我很久，如果你在vps上以txt保存链接的话，$data会带有一个\n换行符导致过滤器返回false。
+                	所以要用php文件来输出内容，避免换行符的出现。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-9.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，便进入到$this->initFromUrl($this->data)方法内，
+                	这里有个file_get_contents()函数去请求$data中的链接，所以我们构造一个phar协议的链接，
+                	来触发目标本地的phar文件即可达到反序列化攻击。这里需要注意的是，此处的命令执行没有回显。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-10.jpg" alt="">
+                </a>
+                
                 
                 
                 
