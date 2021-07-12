@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>Laravel Debug Mode RCE</h1>
+                    <h2 class="subheading">CVE-2021-3129</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on July 12, 2021</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;前面分析了laravel5的反序列化利用链，想起来线下赛有一个有意思的laravel漏洞，借此来复现一下。</p>
+                
+                <h2 class="section-heading">影响范围</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;laravel <= V8.4.2</p>
+                
+                <p>&nbsp;&nbsp;&nbsp;Facade Ignition < 2.5.2</p>
+
+                <h2 class="section-heading">配置环境</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;使用composer下载对应版本的laravel。</p>
+
+								<div>
+									
+								<pre class='hljs'><code>git clone https:<span class="hljs-comment">//github.com/laravel/laravel.git   </span>
+cd laravel
+git checkout e849812  
+composer install     
+composer require facade/ignition==<span class="hljs-number">2.5</span>.<span class="hljs-number">1</span>  
+cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> .env</code></pre>
+									
+								</div>
+								
+								<p>&nbsp;&nbsp;&nbsp;再到config/app.php中开启debug模式。至于APP_KEY的话，访问一下主页在报错中点击生成key按钮就行了。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/install.jpg" alt="">
+                </a>
+                
+                
+                <h2 class="section-heading">Laravel Debug Mode RCE</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;首先发送以下POST数据包检验一下漏洞是否存在，图中是漏洞存在的响应包。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;先来看一下这个数据包怎么来的，为什么要这么发。
+                	首先在视图view下创建一个模板文件，因为laravel框架视图使用的是blade模板引擎，所以创建的是blade模板文件。
+                	其实看默认的welcome模板也可以看出来是blade模板引擎渲染。
+                	从图中可以看到创建的模板文件定义了一个$username未知变量，这里会造成一个报错。
+                	</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;在路由里面指定/pwn路径渲染刚刚创建的模板文件。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;访问/pwn路径可以看到报错信息，而laravel框架有一个Ignition组件，
+                	用于debug环境下跟踪并显示报错的堆栈信息，并且这个组件可以自动修改报错。
+                	图中的Make variable optional按钮就是用于触发自动修改事件。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;点击按钮，抓包便是一开始检验漏洞的请求包，
+                	不同的是修改json数据中的viewFile参数为一个不存在的文件名，触发file_get_contents()函数报错，
+                	说明有进入造成漏洞的代码段。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来看一下造成漏洞的代码段，跟利用的大致思路。
+                	首先，来到ExecuteSolutionController控制器，这里调用了getRunnableSolution()方法来获取MakeViewVariableOptionalSolution类，
+                	并且调用了它的run()方法。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到RunnableSolution接口的MakeViewVariableOptionalSolution类。
+                	run()方法先调用了makeOptional()方法，
+                	而这里的makeOptional()方法没有经过任何过滤就用file_get_contents()函数获取了viewFile参数的值，
+                	然后对viewFile的值进行修改并赋值给$newContents。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接着，跟随$newContents来到上面的run()方法，将修改后的内容覆盖原先的内容。
+                	这里在makeOptional()方法中还是有一些限制，比如说在代码段中用zend引擎语法分析修改前后的代码结构进行校验。
+                	所以无法修改写入的内容，只能利用file_get_contents()函数来触发phar反序列化攻击。</p>
+								
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;那么，要想触发phar反序列化攻击，就要有phar文件落地，在实战中可以考虑文件上传的点。
+                	但该cve利用的是在laravel报错日志中写phar文件，这也是我想复现的原因，这种写phar文件的情况一般比较少想到。
+                	来到laravel框架的日志中看一下大概的格式，可以看到这里有两段我们打过去的payload，还有一个一半的payload，
+                	这个一半的payload没什么用就当作无用数据。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-9.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;先用伪协议对日志进行清空，
+                	这个过滤器好像官方文档没有，可以做一个积累。</p>
+                
+                <div>
+                	
+                	<pre class='hljs'><code>php://<span class="hljs-built_in">filter</span>/<span class="hljs-built_in">read</span>=consumed/resource=../storage/logs/laravel.<span class="hljs-built_in">log</span></code></pre>
+                	
+                </div>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-10.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到错误日志已经被清空。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-11.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;接下来便是如何通过编解码来构造phar文件，看一下payload怎么生成。
+                	首先利用phpggc生成一个payload，然后进行base64编码，最后进行quoted-printable编码。
+                	之所以要进行quoted-printable编码，是因为空字节会导致函数报错，所以要对这个空字节进行填充编码为两字节。</p>
+                <p>&nbsp;&nbsp;&nbsp;这样一来，先经过一次quoted-printable解码，
+                	再经过一次utf-16转utf-8后，无用字符就会变成非ascii码字符，然后再经过一次base64解码后，
+                	就只剩下构造的payload。这里不直接base64位去掉无用字符的原因是，报错信息中也含有=字符，可能会导致错误。
+                	这里记得在末尾加上个a，原因是UTF-16是基于两字节，这样可以确保前后两段payload至少有一个解码成功，
+                	也防止了重复payload。</p>
+                	
+                <div>
+                	
+                	<pre class='hljs'><code>php -d <span class="hljs-string">'phar.readonly=0'</span> .<span class="hljs-regexp">/phpggc monolog/</span>rce1 system id --phar phar -o <span class="hljs-string">php:</span><span class="hljs-comment">//output | base64 -w0 | python -c "import sys;print(''.join(['=' + hex(ord(i))[2:].zfill(2) + '=00' for i in sys.stdin.read()]).upper())" &gt; payload.txt</span></code></pre>
+                	
+                </div>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-12.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;但上述条件都是建立在错误日志能够将payload凑成两字节的情况下，
+                	所以需要先发送一个凑齐两字节的payload。</p>
+                
+
+                
+
+
+
+
+
+
+
+
+
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2021</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+</body>
+
+</html>
