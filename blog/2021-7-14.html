@@ -133,8 +133,10 @@
                     <img class="img-fluid" src="../img/2021-7-14/pop-2.jpg" alt="">
                 </a>	
                 
-                <p>&nbsp;&nbsp;&nbsp;除了TCP模式，还有一个unix套接字是通过读写/run/php/php7.3-fpm.sock来进行通信。
-                	而这种情况需要有特殊的代码段建立sock连接来写入tcp流通信，不能直接通过9000端口来打。</p>
+                <p>&nbsp;&nbsp;&nbsp;除了TCP模式，还有一个unix套接字是通过读写sock文件来进行通信，
+                	具体读写的sock文件得看php-fpm或者nginx这些中间件的配置文件。
+                	而且这种情况需要有特殊的代码段建立sock连接来写入tcp流通信，不能直接通过9000端口来打，
+                	相对来说利用条件比较苛刻。</p>
                 
 
 
