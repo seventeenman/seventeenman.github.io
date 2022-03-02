@@ -26,7 +26,10 @@
     <link href="../css/clean-blog.min.css" rel="stylesheet">
 
     <!-- Code highlight-->
-    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
 
 </head>
 
@@ -92,7 +95,7 @@
                 <p>&nbsp;&nbsp;&nbsp;首先官网下载一下EmpireCMS v7.5，在进入安装页面前，要记得在配置文件开启短标签。
                 	同时，也可以得出这个cms如果有过滤php关键字，可以用短标签绕过。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/install.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/install.jpg" alt="">
                 </a>
                 
@@ -101,7 +104,7 @@
                 <p>&nbsp;&nbsp;&nbsp;安装后，出于习惯再次访问安装页面，检测是否有重装漏洞，
                 	发现这里有类似lock文件的install.off，所以要利用这个还需要搭配一个任意文件删除漏洞。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-0-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-0-1.jpg" alt="">
                 </a>
                 
@@ -111,20 +114,20 @@
                 	构造一个模型文件(*.mod)，在里面写个shell。
                 	(不加.php也可以，我只是直接加上.mod后缀，没有去掉而已)</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-1-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-1-1.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;按图片步骤上传模型文件导入，再从前端参数定位功能点的代码段。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-1-2.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-1-2.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;来到e/admin/ecmsmod.php的elseif($enews=="LoadInMod")功能点，
                 	可以看出这里将文件对象以及它的信息传入了LoadInMod($_POST,$file,$file_name,$file_type,$file_size,$logininid,$loginin)函数。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-1-3.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-1-3.jpg" alt="">
                 </a>
                 
@@ -133,25 +136,25 @@
                 	最后以一个加密后的文件名上传文件，确保搞安全的同学利用不了这个文件。
                 	但这里问题在于直接include了我们上传的模型文件，所以解析了里面php代码。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-1-4.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-1-4.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;解析的php代码。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-1-5.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-1-5.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;成功执行file_put_contents()函数写入文件。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-1-6.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-1-6.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;shell成功执行命令。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-1-7.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-1-7.jpg" alt="">
                 </a>
                 
@@ -169,31 +172,31 @@
                 <p>&nbsp;&nbsp;&nbsp;同样的，这个漏洞也是基于拿到后台管理员账号，准备进一步getshell利用的。
                     先按图片步骤点击，接着常规操作绝对路径写shell，查看前端发送到后端的参数，定位一下功能点代码段。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-2-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-2-1.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;根据$enews=$_POST['enews']找到这里，可以看到调用了DoExecSql($_POST,$logininid,$loginin)方法。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-2-2.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-2-2.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下该函数，这里调用了RepSqlTbpre($query)。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-2-3.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-2-3.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;看一下RepSqlTbpre($query)的代码，发现只是对表名添加前缀操作。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-2-4.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-2-4.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;return回来，可以看到调用了DoRunQuery($query)函数。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-2-5.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-2-5.jpg" alt="">
                 </a>
                 
@@ -202,26 +205,26 @@
                 	如果有多条语句的话，用foreach遍历执行sql语句。
                 	(看到这里我是比较意外的，真的什么过滤也没有，不过想了想这毕竟是人家对后台管理系统)</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-2-6.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-2-6.jpg" alt="">
                 </a>
                 
                 	
                 <p>&nbsp;&nbsp;&nbsp;页面回显执行sql语句成功。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-2-7.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-2-7.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;成功写入shell。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-2-8.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-2-8.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;成功执行命令。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-30/pop-2-9.jpg">
                     <img class="img-fluid" src="../img/2021-5-30/pop-2-9.jpg" alt="">
                 </a>
                 
@@ -293,6 +296,9 @@
 
 <!-- Custom scripts for this template -->
 <script src="../js/clean-blog.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+
 
 </body>
 

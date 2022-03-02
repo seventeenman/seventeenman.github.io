@@ -26,7 +26,10 @@
     <link href="../css/clean-blog.min.css" rel="stylesheet">
 
     <!-- Code highlight-->
-    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
 
 </head>
 
@@ -109,7 +112,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
 								
 								<p>&nbsp;&nbsp;&nbsp;到.env中开启debug模式。至于APP_KEY的话，访问一下主页，按报错中的说明执行指令或者点击生成key按钮就行了。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/install.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/install.jpg" alt="">
                 </a>
                 
@@ -118,7 +121,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 
                 <p>&nbsp;&nbsp;&nbsp;首先发送以下POST数据包检验一下漏洞是否存在，图中是漏洞存在的响应包。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/pop-1.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-1.jpg" alt="">
                 </a>
                 
@@ -128,13 +131,13 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	从图中可以看到创建的模板文件定义了一个$username未知变量，这里会造成一个报错。
                 	</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/pop-2.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-2.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;在路由里面指定/pwn路径渲染刚刚创建的模板文件。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/pop-3.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-3.jpg" alt="">
                 </a>
                 
@@ -142,7 +145,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	用于debug环境下跟踪并显示报错的堆栈信息，并且这个组件可以自动修改报错。
                 	图中的Make variable optional按钮就是用于触发自动修改事件。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/pop-4.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-4.jpg" alt="">
                 </a>
                 
@@ -150,7 +153,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	不同的是修改json数据中的viewFile参数为一个不存在的文件名，触发file_get_contents()函数报错，
                 	说明有进入造成漏洞的代码段。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/pop-5.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-5.jpg" alt="">
                 </a>
                 
@@ -158,7 +161,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	首先，来到ExecuteSolutionController控制器，这里调用了getRunnableSolution()方法来获取MakeViewVariableOptionalSolution类，
                 	并且调用了它的run()方法。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/pop-8.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-8.jpg" alt="">
                 </a>
                 
@@ -167,7 +170,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	而这里的makeOptional()方法没有经过任何过滤就用file_get_contents()函数获取了viewFile参数的值，
                 	然后对viewFile的值进行修改并赋值给$newContents。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/pop-6.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-6.jpg" alt="">
                 </a>
                 
@@ -175,7 +178,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	这里在makeOptional()方法中还是有一些限制，比如说在代码段中用zend引擎语法分析修改前后的代码结构进行校验。
                 	所以无法修改写入的内容，只能利用file_get_contents()函数来触发phar反序列化攻击。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/pop-7.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-7.jpg" alt="">
                 </a>
                 
@@ -184,7 +187,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	来到laravel框架的日志中看一下大概的格式，可以看到这里有两段我们打过去的payload，还有一个一半的payload，
                 	这个一半的payload没什么用就当作无用数据。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-12/pop-9.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-9.jpg" alt="">
                 </a>
                 
@@ -199,13 +202,13 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 
                 
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-12/pop-10.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-10.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;可以看到错误日志已经被清空。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-12/pop-11.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-11.jpg" alt="">
                 </a>
                 
@@ -225,21 +228,21 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 </div>
                 
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-12/pop-12.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-12.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;但上述条件都是建立在错误日志能够将payload中的每两字节按顺序转化，
                 	所以需要先发送一个凑齐两字节的payload。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-12/pop-16.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-16.jpg" alt="">
                 </a>	
                 
                 <p>&nbsp;&nbsp;&nbsp;接着，将刚刚phpggc生成后的payload打过去，这里要记得在末尾加个a。</p>
 
                 	       
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-12/pop-14.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-14.jpg" alt="">
                 </a>	
                 
@@ -252,7 +255,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	
                 </div>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-12/pop-13.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-13.jpg" alt="">
                 </a>	
                 	
@@ -262,14 +265,14 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
 									存了个镜像马上到vps上搭环境，换了个PHP 7.3。啪地一些很快啊，200状态码就出来了。
 									因为我物理机的PHP版本是7.4.2，结合报错信息来看，我猜测是convert.iconv过滤器与PHP的版本有关系。</p>
 									
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-12/pop-17.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-17.jpg" alt="">
                 </a>		
                 
                 <p>&nbsp;&nbsp;&nbsp;登上vps看了下内容，果然是phar文件。</p>
                 
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-12/pop-18.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-18.jpg" alt="">
                 </a>
                 
@@ -281,7 +284,7 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
                 	
                 </div>	 
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-12/pop-19.jpg">
                     <img class="img-fluid" src="../img/2021-7-12/pop-19.jpg" alt="">
                 </a>		
                 	
@@ -348,7 +351,8 @@ cp <span class="hljs-class">.env</span><span class="hljs-class">.example</span> 
 
 <!-- Custom scripts for this template -->
 <script src="../js/clean-blog.min.js"></script>
-
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
 </body>
 
 </html>

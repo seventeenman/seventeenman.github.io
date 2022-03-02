@@ -26,7 +26,10 @@
     <link href="../css/clean-blog.min.css" rel="stylesheet">
 
     <!-- Code highlight-->
-    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
 
 </head>
 
@@ -90,27 +93,27 @@
 
                 <p>&nbsp;&nbsp;&nbsp;利用链如下:</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-1-1.png">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-1.png" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;触发点位于:/vendor/topthink/think-orm/src/Model.php</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-1-2.png">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-2.png" alt="">
                 </a>
                 <span class="caption text-muted">令$this->lazySave = true</span>
                 
                 <p>&nbsp;&nbsp;&nbsp;查看$this->save()方法调用情况</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-1-3.png">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-3.png" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;此处的$this->setAttrs($data)为数据赋值类操作，看到下面一个if语句，还要往下走，不能进入到if语句内return。
                 	又因为这里为或，所以只需要绕过这里的两个if条件其中一个。</p>
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-1-4.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-4.jpg" alt="">
                 </a>
                 
@@ -118,7 +121,7 @@
 
 								<p>&nbsp;&nbsp;&nbsp;查看$this->updateData()调用情况。</p>
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-1-5.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-5.jpg" alt="">
                 </a>
                 
@@ -126,14 +129,14 @@
 								
 								<p>&nbsp;&nbsp;&nbsp;$this->checkAllowFields()上面的条件基本满足，直接查看checkAllowFields方法调用情况。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-1-6.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-6.jpg" alt="">
                 </a>
                 
                 
                 <p>&nbsp;&nbsp;&nbsp;两个if初始值可以满足，不做修改。进一步可以看到$this->table . $this->suffix使用字符串拼接，找一个有__tostring方法的类做跳板。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-1-7.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-7.jpg" alt="">
                 </a>
                 
@@ -142,25 +145,25 @@
 
 								<p>&nbsp;&nbsp;&nbsp;可以看到眼睛快坏掉了,lol</p>
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-1-8.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-8.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;很自然地进入$this->toArray()，看一下它在干什么</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-1-9.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-9.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;要想进入$this->getAttr($key)，必须要绕过两个if条件</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-1-10.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-10.jpg" alt="">
                 </a>
 
 								<p>&nbsp;&nbsp;&nbsp;看一下两个for循环里面的if，只要下标对应的键值不为字符串即可</p>
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-1-11.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-11.jpg" alt="">
                 </a>
 								
@@ -169,19 +172,19 @@
 								<p>&nbsp;&nbsp;&nbsp;合并后的数组中的下标传入$this->getAttr($key)，看一下该方法的调用</p>
 									
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-1-12.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-12.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;进入$this->getData($name)，从$this->data[$fieldName]通过下标获取键值返回进入$this->getValue($name, $value, $relation)。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-1-13.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-13.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;查看$this->getValue($name, $value, $relation)方法的调用</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-1-14.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-1-14.jpg" alt="">
                 </a>
                 
@@ -267,26 +270,26 @@
                 
                 <p>&nbsp;&nbsp;&nbsp;搜索全局__destruct()方法，找到/vendor/league/flysystem-cached-adapter/src/Storage/AbstractCache.php</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-2-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-2-1.jpg" alt="">
                 </a>
                 
                 <span class="caption text-muted">令$autosave = false</span>
                 
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-2-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-2-1.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;因为AbstractCache为抽象类，所以找一下它的子类</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-2-2.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-2-2.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;看到子类CacheStore中的save方法</p>
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-2-3.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-2-3.jpg" alt="">
                 </a>
                 
@@ -294,14 +297,14 @@
 
 								<p>&nbsp;&nbsp;&nbsp;查看cleanContents调用情况，只要不是嵌套数组，就可以直接return回来</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-2-4.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-2-4.jpg" alt="">
                 </a>
 								
 								<p>&nbsp;&nbsp;&nbsp;返回json编码后的数据，进入set方法。
 									在条件足够利用的情况下，坚持能不进就不进原则。绕过第一个if语句，进入getCacheKey($name)方法。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-2-6.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-2-6.jpg" alt="">
                 </a>
                 
@@ -310,7 +313,7 @@
                 <p>&nbsp;&nbsp;&nbsp;$this->options = ['hash_type']不能为空，别问我怎么知道的。
                 	接着，返回进去serialize($value)方法</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-2-7.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-2-7.jpg" alt="">
                 </a>
                 
@@ -321,7 +324,7 @@
                 	选择反弹shell是因为这里会因为[]"这几个符号报错，无法回显ls这类指令的输出。
                 	当然，我一开始用trim测试去掉[]"这几个符号，但还是行不通。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-2-8.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-2-8.jpg" alt="">
                 </a>
                 
@@ -427,7 +430,7 @@
                 
                 <p>&nbsp;&nbsp;&nbsp;既然有file_put_contents()函数，那么肯定要康康文件名跟内容参数怎么控制啦!</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-3-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-3-1.jpg" alt="">
                 </a>
 								
@@ -435,7 +438,7 @@
 									更何况这里两个if已经对我们文件名动手动脚的了（诶，有if我就不进，就是玩儿），
 									这里options['path']用伪协议，是因为写入内容拼接了exit，具体康康p神那篇伪协议文章。</p>
 								
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-8/pop-3-2.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-3-2.jpg" alt="">
                 </a>
                 
@@ -447,7 +450,7 @@
                 <p>&nbsp;&nbsp;&nbsp;这里要记得文件名跟加密方式，这里我用的是md5加密后的17man，
                 	然后文件内容要加3个字符，因为base64编码4个字符一组。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-3-3.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-3-3.jpg" alt="">
                 </a>
                     
@@ -549,7 +552,7 @@
 								<p>&nbsp;&nbsp;&nbsp;触发点位于League\Flysystem\Cached\Storage\AbstractCache::__destruct()</p>
 								
 						
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-4-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-4-1.jpg" alt="">
                 </a>
                 
@@ -557,7 +560,7 @@
                 
                 <p>&nbsp;&nbsp;&nbsp;AbstractCache为抽象类，找一下它的子类Adapter利用</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-4-2.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-4-2.jpg" alt="">
                 </a>
                 
@@ -567,7 +570,7 @@
                 	上文分析了该参数可控，所以可以用来写马。
                 	我们只需要找到有has()跟write()方法的对象来利用。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-4-3.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-4-3.jpg" alt="">
                 </a>
                 
@@ -576,7 +579,7 @@
                 <p>&nbsp;&nbsp;&nbsp;查看has()方法的调用情况，发现该方法用来判断文件是否已存在，
                 	只要构建文件名不存在即可</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-4-4.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-4-4.jpg" alt="">
                 </a>
                 
@@ -584,7 +587,7 @@
                 
                 <p>&nbsp;&nbsp;&nbsp;执行file_put_contents()函数，写入shell</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-8/pop-4-5.jpg">
                     <img class="img-fluid" src="../img/2021-5-8/pop-4-5.jpg" alt="">
                 </a>
                 
@@ -714,6 +717,9 @@
 
 <!-- Custom scripts for this template -->
 <script src="../js/clean-blog.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+
 
 </body>
 

@@ -5,14 +5,14 @@
  */
 
 body {
-  font-size: 20px;
+  font-size: 18px;
   color: #212529;
-  font-family: 'Lora', 'Times New Roman', serif;
+  font-family: "Helvetica Neue",Helvetica,Arial,"Microsoft Yahei","Hiragino Sans GB","Heiti SC","WenQuanYi Micro Hei",sans-serif;
 }
 
 p {
   line-height: 1.5;
-  margin: 30px 0;
+  margin: 20px 0;
 }
 
 p a {
@@ -44,9 +44,9 @@ blockquote {
 }
 
 .section-heading {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
-  margin-top: 60px;
+  margin-top: 45px;
 }
 
 .caption {
@@ -170,7 +170,7 @@ img::-moz-selection {
 }
 
 header.masthead {
-  margin-bottom: 50px;
+  margin-bottom: 10px;
   background: no-repeat center center;
   background-color: #868e96;
   background-attachment: scroll;

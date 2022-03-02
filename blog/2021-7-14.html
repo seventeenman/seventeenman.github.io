@@ -26,7 +26,10 @@
     <link href="../css/clean-blog.min.css" rel="stylesheet">
 
     <!-- Code highlight-->
-    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
 
 </head>
 
@@ -129,7 +132,7 @@
                 	
                 <p>&nbsp;&nbsp;&nbsp;这里从p神的EXP中也可以看出怎么构造出的数据包。</p>	
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-14/pop-2.jpg">
                     <img class="img-fluid" src="../img/2021-7-14/pop-2.jpg" alt="">
                 </a>	
                 
@@ -167,7 +170,7 @@
                 
                 <p>&nbsp;&nbsp;&nbsp;查看一下php文件，利用条件需要有一个PHP文件，实战中可以使用默认安装环境下的PHP文件。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-14/pop-1.jpg">
                     <img class="img-fluid" src="../img/2021-7-14/pop-1.jpg" alt="">
                 </a>	
                 
@@ -179,7 +182,7 @@
                 	
                 </div>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-7-14/pop-3.jpg">
                     <img class="img-fluid" src="../img/2021-7-14/pop-3.jpg" alt="">
                 </a>	
                 
@@ -191,14 +194,14 @@
                 <p>&nbsp;&nbsp;&nbsp;如果PHP-FPM监听的是内网的9000端口，那就需要搭配一个ssrf的点来打gopher。
                 	这里用Gopherus-master生成payload。</p>
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-14/pop-4.jpg">
                     <img class="img-fluid" src="../img/2021-7-14/pop-4.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;这里演示一段curl造成的ssrf漏洞。如果在代码审计中，
                 	遇到像前面文章审出的ssrf无回显的话，就可以直接用来弹个shell。</p>
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-14/pop-5.jpg">
                     <img class="img-fluid" src="../img/2021-7-14/pop-5.jpg" alt="">
                 </a>
                 
@@ -219,19 +222,19 @@ var_dump(fread(<span class="hljs-variable">$sock</span>, <span class="hljs-numbe
                 	
                 </div>	
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-14/pop-6.jpg">
                     <img class="img-fluid" src="../img/2021-7-14/pop-6.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;首先用Gopherus-master生成payload，取_后面的内容进行base64编码。</p>
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-14/pop-8.jpg">
                     <img class="img-fluid" src="../img/2021-7-14/pop-8.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;再将payload打过去即可回显执行的内容。</p>
 
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-7-14/pop-7.jpg">
                     <img class="img-fluid" src="../img/2021-7-14/pop-7.jpg" alt="">
                 </a>
                 
@@ -301,7 +304,8 @@ var_dump(fread(<span class="hljs-variable">$sock</span>, <span class="hljs-numbe
 
 <!-- Custom scripts for this template -->
 <script src="../js/clean-blog.min.js"></script>
-
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
 </body>
 
 </html>

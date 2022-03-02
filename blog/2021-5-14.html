@@ -26,7 +26,10 @@
     <link href="../css/clean-blog.min.css" rel="stylesheet">
 
     <!-- Code highlight-->
-    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
 
 </head>
 
@@ -90,7 +93,7 @@
                 
                 <h2 class="section-heading">网络拓扑图</h2>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/network.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/network.jpg" alt="">
                 </a>
 
@@ -102,19 +105,19 @@
                 <p>&nbsp;&nbsp;&nbsp;nmap扫描一下端口以及探测，发现web端口与服务器系统信息。</p>
 
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/info.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/info.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;首先看一下web服务，发现是TP框架，扫描一下目录，发现可疑目录。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/web.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/web.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;看起来超像一个木马，爆破了1w条无果，找找其它线索。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/add.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/add.jpg" alt="">
                 </a>
 
@@ -122,49 +125,49 @@
 
                 <p>&nbsp;&nbsp;&nbsp;本来想看一下runtime下有没有日志，结果先出了个报错页面，得到TP版本之后，搜一下相关EXP一把梭。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/error.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/error.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;测试了一下可以打通。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/poc.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/poc.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;写个马进public目录试试。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/exp.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/exp.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;成功连上，开启终端收集系统信息，为进一步渗透做准备。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/system.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/system.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;收集一下网卡信息，发现有域。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/ipconfig.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/ipconfig.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;msf生成payload，与powershell建立反向连接。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/msf.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/msf.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;拿下win7机子，获取下内网情况。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/user.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/user.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;ping一下域控DC，拿到内网ip。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/controller.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/controller.jpg" alt="">
                 </a>
 
@@ -172,56 +175,56 @@
 
                 <p>&nbsp;&nbsp;&nbsp;mimikaz模块抓取密码，因为系统位数不同，先迁移到64位进程中。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/kiwi.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/kiwi.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;成功获取域管理员跟域用户密码。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/hash.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/hash.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;win7开放6666端口(TCP)。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/port.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/port.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;kali上开启ew，搭好与win7见面的路。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/kali_sock5.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/kali_sock5.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;win7使用ew与kali见面。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/win_sock5.jp">
                     <img class="img-fluid" src="../img/2021-5-14/win_sock5.jpg" alt="">
                 </a>
 
 
                 <p>&nbsp;&nbsp;&nbsp;win7成为了跳板机，给payload设置好sock代理，直接打DC。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/pwn_dc.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/pwn_dc.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;通过win7作跳板，对DC进行远程桌面连接。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/rdp.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/rdp.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;用我们刚刚用mimikaz获取的账号密码登录DC。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/desk.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/desk.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;登录成功，喜提DC一台。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/dcshell.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/dcshell.jpg" alt="">
                 </a>
 
@@ -230,19 +233,19 @@
 
                 <p>&nbsp;&nbsp;&nbsp;在DC上，为DSRM账号设置新密码。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/dcpasswd.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/dcpasswd.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;dump下来DC本地SAM文件中的本地管理员的NTLM Hash。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/dchash.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/dchash.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;在powershell中修改域控主机的DSRM账户登录方式，方便我们今后哈希传递攻击。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/powershell.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/powershell.jpg" alt="">
                 </a>
 
@@ -251,7 +254,7 @@
 
                 <p>&nbsp;&nbsp;&nbsp;查看事件日志并清除所有事件日志，准备跑路。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-14/log.jpg">
                     <img class="img-fluid" src="../img/2021-5-14/log.jpg" alt="">
                 </a>
 
@@ -317,6 +320,9 @@
 
 <!-- Custom scripts for this template -->
 <script src="../js/clean-blog.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+
 
 </body>
 

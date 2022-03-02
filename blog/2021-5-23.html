@@ -26,7 +26,10 @@
     <link href="../css/clean-blog.min.css" rel="stylesheet">
 
     <!-- Code highlight-->
-    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
 
 </head>
 
@@ -91,19 +94,19 @@
                 <p>&nbsp;&nbsp;&nbsp;使用composer create-project topthink/think thinkphp5.1.24 5.1.24之后总会自动update为5.1的最新版本，
                 手动修改一下版本进行更新。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/install.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/install.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;这里将lock文件中到thinkphp版本改成5.1.24。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/install-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/install-1.jpg" alt="">
                 </a>
 
                 <p>&nbsp;&nbsp;&nbsp;这里也改成5.1.24，然后执行composer update，使版本更新恢复到5.1.24。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/install-2.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/install-2.jpg" alt="">
                 </a>
                 
@@ -118,21 +121,21 @@
                 	这个利用链其实需要利用一个反射的点去实例化url参数中的对象并调用该方法。</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-1.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;接下来需要构造实例化这个类的路由，先从入口文件开始分析。</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-2.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-2.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进App::run()，进入routeCheck()方法检查路由。</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-3.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-3.jpg" alt="">
                 </a>
                 
@@ -140,7 +143,7 @@
                 <p>&nbsp;&nbsp;&nbsp;随后进入$this->request->path()获取pathinfo，赋值给path变量。</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-4.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-4.jpg" alt="">
                 </a>
                 
@@ -148,7 +151,7 @@
                 	thinkphp有四种路由解析方式，$this->pathinfo()其实就是去配置文件中找到相应的解析方式，这里获取的是传给s的参数。</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-5.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-5.jpg" alt="">
                 </a>
                 
@@ -156,7 +159,7 @@
                 <p>&nbsp;&nbsp;&nbsp;返回后带着上面获取到的$path参数进入$this->route->check($path, $must)进行路由检测。</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-6.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-6.jpg" alt="">
                 </a>
                 
@@ -165,91 +168,91 @@
                 	即刚刚传入的$path参数。</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-7.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-7.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;可以看到UrlDispatch其实是Url类。</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-8.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-8.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;而Url类是继承于Dispatch类的。</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-9.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-9.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;$path的值赋给Dispatch类的$dispatch。</p>
                 	               	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-10.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-10.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;再来到Url类，调用了$this->parseUrl($this->dispatch)赋值给$result.</p>
                 	
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-11.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-11.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;在parseUrl()方法中返回分割后的路由，这里其实就是将传入的s参数进行路由解析前的分割。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-12.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-12.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;接着，实例化Module类调用init()方法，然后init()方法返回一个实例化对象。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-13.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-13.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;回到刚开始的App::run()继续往下走，走到return is_null($data) ? $dispatch->run() : $data，
                 	因为$data为null，所以会进入$dispatch->run()，而这个$dispatch已经在前面赋值为实例化后的Module类。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-14.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-14.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;在进入Module类之前，先进入它的抽象父类Dispatch，在run()方法中调用Module::exec()方法。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-15.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-15.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;进入Module::exec()方法后，在此处进入App::controller()方法。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-16.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-16.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;从注释中也可以得到此处将实例化类的信息，这里先调用了$this->parseModuleAndClass($name, $layer, $appendSuffix)。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-17.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-17.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;$this->parseModuleAndClass()方法会返回模块跟类名，返回后会判断是否存在回调，
                 	再用__get()跟make()方法进行实例化。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-18.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-18.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;返回Module::exec()方法，看99行跟113行注释也可以得出下半部分获取了操作名跟请求变量，即要实例化的类的方法以及绑定参数。
                 	接着，再调用$this->app->invokeReflectMethod()方法进行反射。即能够实例化任意对象跟调用其方法，并且参数可控。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-19.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-19.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;反射调用Container::invokeFunction()方法，并且传入绑定的参数，来到触发点进行命令执行。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-20.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-20.jpg" alt="">
                 </a>
                 
@@ -268,13 +271,13 @@
                 	回到TP5.0.x的rce链，找到thinkphp/library/think/Request.php::input()。
                 	这里实例化input()方法，再控制其参数data数组和filter。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-2-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-2-1.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;带着控制的参数data数组和filter进入filterValue()方法后，触发call_user_func($filter, $value)命令执行。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-2-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-2-2.jpg" alt="">
                 </a>
                 
@@ -293,7 +296,7 @@
 								<p>&nbsp;&nbsp;&nbsp;在thinkphp/library/think/template/driver/File.php::write()也有一个file_put_contents()可以用来写shell。
 									也是通过路由实例化类跟调用方法，并且控制参数。</p>
                 	                	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-23/pop-3-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-23/pop-3-1.jpg" alt="">
                 </a>
 								
@@ -367,6 +370,8 @@
 
 <!-- Custom scripts for this template -->
 <script src="../js/clean-blog.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
 
 </body>
 

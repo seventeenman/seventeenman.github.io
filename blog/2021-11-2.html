@@ -26,7 +26,10 @@
     <link href="../css/clean-blog.min.css" rel="stylesheet">
 
     <!-- Code highlight-->
-    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
 
 </head>
 
@@ -112,14 +115,14 @@
                 <p>&nbsp;&nbsp;&nbsp;首先看到Transformer[]这个数组的内容，可以看到第一个参数实例化了ConstantTransformer类并传入Runtime.class类，
                 	其余3个参数都是往InvokerTransformer类中传。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-11-2/1-1.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-1.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;那么，这个数组中的类究竟是在做什么呢？跟进一下代码，可以发现这里对一个类中的属性做了赋值。
                 	对类中属性赋值肯定就会在其它方法中使用，看到下面的InvokerTransformer#transform()方法。大概可以猜到这里做了一个类似反射的操作。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-11-2/1-2.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-2.jpg" alt="">
                 </a>
                 
@@ -127,21 +130,21 @@
                 	这里利用的是ConstantTransformer类将其赋值给iConstant，后面会通过该类中的transform返回。
                 	由于ConstantTransformer继承Transformer接口，所以可以装载到Transformer数组中调用transform方法。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-11-2/1-3.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-3.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;上述构造的Transformer[]数组传入ChainedTransformer()方法后，可以看到下面的transform()方法可以搭配3次反射构造一个执行类来执行命令。
                 	所以需要一个调用该类中transform()方法的方法。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-11-2/1-4.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-4.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;接下来就需要找可以调用ChainedTransformer#transform方法的方法。
                 	先看到EXP中的LazyMap.decorate()方法，这里实例化了一个LazyMap，赋值给了this.factory。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-11-2/1-5.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-5.jpg" alt="">
                 </a>
                 
@@ -149,27 +152,27 @@
                 	factory即为上面控制的this.factory。
                 	所以，只需要找一个调用LazyMap#get的点(有点类似找PHP的_call方法)。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-11-2/1-6.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-6.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;首先来到AnnotationInvocationHandler类的构造方法中，这里可以看到对this.memberValues进行了赋值。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-11-2/1-7.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-7.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;再看到该类中还有invoke方法，这里通过this.memberValues.get()调用了get方法，所以只要在构造方法中将this.memberValues赋值为LazyMap，就可以触发LazyMap#get。
                 	而这个invoke方法在动态代理LazyMap后调用，具体可以调一下ysoserial中反序列化后的mapProxy。完成了上面的利用链后，就需要来看一下如何通过反序列化调用。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-11-2/1-8.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-8.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;AnnotationInvocationHandler类继承Serializable，所以看到这里的readObject()方法。
                 	这里调用了Map类中的entrySet方法，所以进入到invoke方法拼成了上面的利用链。</p>
                 	
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-11-2/1-9.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-9.jpg" alt="">
                 </a>
                 
@@ -290,7 +293,8 @@ public <span class="hljs-class"><span class="hljs-keyword">class</span> <span cl
 
 <!-- Custom scripts for this template -->
 <script src="../js/clean-blog.min.js"></script>
-
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
 </body>
 
 </html>

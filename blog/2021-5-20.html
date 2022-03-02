@@ -26,7 +26,10 @@
     <link href="../css/clean-blog.min.css" rel="stylesheet">
 
     <!-- Code highlight-->
-    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
 
 </head>
 
@@ -91,7 +94,7 @@
 
                 <p>&nbsp;&nbsp;&nbsp;在TP官网下载5.022核心版。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/install.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/install.jpg" alt="">
                 </a>
                 
@@ -105,7 +108,7 @@
 								<p>&nbsp;&nbsp;&nbsp;该利用链不短，debug涉及的点也比较多，从入口点开始分析。
 									搜索一下call_user_func函数触发点。
 									
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-20/pop-1.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-1.jpg" alt="">
                 </a>
 									
@@ -114,7 +117,7 @@
 									传入的第三个参数为回调函数名，第一个参数为传入函数的参数，
 									所以需要控制$filter与$value的值，才能命令执行。</p>
 									
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-20/pop-2.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-2.jpg" alt="">
                 </a>
                 
@@ -123,7 +126,7 @@
                 	可以看到无论$data是不是数组最终都会调用filterValue方法(但其实在后面的param()方法会把$data变成数组)，
                 	而$filter通过1023行的过滤器$this->getFilter($filter, $default)方法来获取。</p>
 									
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-20/pop-3.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-3.jpg" alt="">
                 </a>
 
@@ -131,7 +134,7 @@
 									所以将$this->filter赋值给$filter。最后filter[] = $default，
 									即给filter[]添加一组空数据。所以，返回的其实是 [$this->filter,null]。</p>
 									
-								<a href="#">
+								<a data-fancybox="gallery" href="../img/2021-5-20/pop-4.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-4.jpg" alt="">
                 </a>
                 
@@ -139,7 +142,7 @@
                 	意思是将$filter传入$this->filterValue()，再将$data中每一个元素使用$this->filterValue()。
                 	(上面分析过call_user_func的参数，$filter为回调函数名，$data为传入回调函数的参数)。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-5.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-5.jpg" alt="">
                 </a>
                 
@@ -150,7 +153,7 @@
                 	所以652行的$this->param中只要控制其中一个就可以了。
                 	接着来看一下怎么控制$filter(回调函数名)跟$data(回调函数参数)就可以了。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-6.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-6.jpg" alt="">
                 </a>
                 
@@ -159,7 +162,7 @@
                		而在526行的$this->{$this->method}($_POST)，
                		我们可以控制$this->method的值，即可以任意调用Request类中存在的任何方法以及控制传入的参数。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-7.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-7.jpg" alt="">
                 </a>
                 
@@ -167,7 +170,7 @@
                 <p>&nbsp;&nbsp;&nbsp;既然可以任意调用Request类中存在的任何方法以及通过POST参数控制传入的参数，
                 	那么就可以调用Request类的__construct方法来控制Request类中的变量。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-8.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-8.jpg" alt="">
                 </a>
                 <span class="caption text-muted">_method=__construct&filter[]=system&get[]=whoami或者
@@ -179,7 +182,7 @@
 									首先回来看一下$filter参数如何赋值的，上面分析过$filter参数默认为空，会取$this->filter的值。而$this->filter在Request类中，
 									我们令filter[]=system即可控制$this->filter的值。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-4.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-4.jpg" alt="">
                 </a>
                 <span class="caption text-muted">令filter[]=system</span>
@@ -193,7 +196,7 @@
                 	就会发现该方法内对这个变量进行了一次初始化，导致无法控制该参数。
                 	</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-6.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-6.jpg" alt="">
                 </a>
                 <span class="caption text-muted">令get[]=whoami或者route[]=whoami</span>
@@ -203,35 +206,35 @@
 								<p>&nbsp;&nbsp;&nbsp;接下来，就需要看一下怎么调用Request类的method方法以及param方法。
 									在thinkphp/library/think/Route.php，调用了$request->method()。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-9.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-9.jpg" alt="">
                 </a>
 								
 								<p>&nbsp;&nbsp;&nbsp;再来查看一下Route::check的调用情况。
 									找到thinkphp/library/think/APP.app中的routeCheck方法。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-10.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-10.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;发现在APP:run()中调用了routeCheck方法，
                 	并且APP:run()为应用启动类，每次都会在执行应用时被调用。所以，需要让$dispatch为空。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-11.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-11.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;查看一下Hook::listen('app_dispatch', self::$dispatch)，
                 	调试了一下，self::$dispatch默认为空。所以，能调用$request->method()方法。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-12.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-12.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;接下来，来看一下Request::param的调用。
                 	发现在thinkphp/library/think/App.php::run()有调用，但需要满足开启debug模式。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-13.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-13.jpg" alt="">
                 </a>
 
@@ -250,7 +253,7 @@ POST: <span class="hljs-title">_method</span>=__construct&amp;<span class="hljs-
                 	全局搜索调用栈，还找到了在thinkphp/library/think/App.php::run()中会调用的thinkphp/library/think/App.php::exec()方法，
                 	这里需要满足$dispatch['type']==method或者$dispatch['type']==controller时，才会调用param()方法。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-14.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-14.jpg" alt="">
                 </a>
                 
@@ -258,21 +261,21 @@ POST: <span class="hljs-title">_method</span>=__construct&amp;<span class="hljs-
                 	所以回过头看一下thinkphp/library/think/App.php::routeCheck方法。
                 	这里要让$result['type']==method或者$result['type']==controller才能满足$dispatch['type']==method或者$dispatch['type']==controller</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-15.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-15.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下self::routeCheck方法，可以看到这里当路由执行为路由到方法或者路由到控制器时，
                 	可以满足$result['type']==method或者$result['type']==controller。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-16.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-16.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;而TP自带的验证码组件captcha注册了一个get路由，我们只需要通过前面的__destruct方法来对method覆盖为get，
                 	然后调用验证码组件captcha即可。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-5-20/pop-17.jpg">
                     <img class="img-fluid" src="../img/2021-5-20/pop-17.jpg" alt="">
                 </a>
                 <span class="caption text-muted">令method=get</span>
@@ -354,6 +357,9 @@ POST: <span class="hljs-title">_method</span>=__construct&amp;<span class="hljs-
 
 <!-- Custom scripts for this template -->
 <script src="../js/clean-blog.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+
 
 </body>
 

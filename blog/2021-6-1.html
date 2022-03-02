@@ -26,7 +26,10 @@
     <link href="../css/clean-blog.min.css" rel="stylesheet">
 
     <!-- Code highlight-->
-    <link rel="stylesheet" href="../highlight/styles/atom-one-dark.css">
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
 
 </head>
 
@@ -91,13 +94,13 @@
 
                 <p>&nbsp;&nbsp;&nbsp;首先官网下载一下dedecms v5.7。</p>
 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/install.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/install.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;常规安装流程后，进入后台管理系统开启会员功能(不开启是不能注册的)。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/start.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/start.jpg" alt="">
                 </a>
                 
@@ -107,53 +110,53 @@
                 <p>&nbsp;&nbsp;&nbsp;首先注册一个用户名为000001的账户
                 	(只要经过intval()函数处理后为1的值即可，后面代码分析的时候会讲到)。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-1-1.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-1.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;接着，管理员需要审核注册的用户。这里直接上后台管理设置权限。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-1-2.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-2.jpg" alt="">
                 </a>
                               
                 <p>&nbsp;&nbsp;&nbsp;访问/member/index.php?uid=000001，获取cookie中的last_vid__ckMd5。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-1-3.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-3.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;设置cookie['DeDeUserID_ckMd5']为cookie['last_vid__ckMd5']的值，
                 	cookie['DedeUserID']为000001，成功从前台登录admin。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-1-4.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-4.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;找到/include/memberlogin.class.php，可以看到这里通过GetCookie("DedeUserID")去获取cookie。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-1-5.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-5.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下GetCookie("DedeUserID")函数，可以看到这里还对cookie字段的字检验了hash salt，
                 	防止直接伪造cookie，注意看这里的校验方式是substr(md5($cfg_cookie_encode.$_COOKIE[$key]),0,16)。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-1-6.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-6.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;既然防止直接伪造cookie，那就应该依靠cms本身的功能生成一个可以利用的cookie以及校验它的hash salt。
                 	这里看到/member/index.php，用了PutCookie('last_vid', $last_vid, 3600*24, '/')方法来生成cookie。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-1-7.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-7.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下PutCookie()函数，可以看到这里用substr(md5($cfg_cookie_encode.$_COOKIE[$key]),0,16)生成cookie['last_vid__ckMd5']。</p>
                 <p>&nbsp;&nbsp;&nbsp;所以，可以利用这里来伪造需要满足substr(md5($cfg_cookie_encode.$_COOKIE[$key]),0,16)校验的cookie。这就解释了为什么要在member/index.php?uid=000001拿取cookie['last_vid__ckMd5']赋值给member/index.php中的cookie['DeDeUserID_ckMd5']。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-1-8.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-8.jpg" alt="">
                 </a>
                 
@@ -164,7 +167,7 @@
                 	再看到178行，$this->M_ID还经过了intval()函数的洗礼。
                 	而一般系统中admin管理员的ID都为1，所以只需要注册一个满足intval(用户名) = 1的用户即可伪造admin登录。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-1-5.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-1-5.jpg" alt="">
                 </a>
                 
@@ -178,14 +181,14 @@
                 <p>&nbsp;&nbsp;&nbsp;首先登录一个用户，接着构造请求/member/resetpassword.php?dopost=safequestion&safequestion=0e123&safeanswer=&id=3
                 	(id为要修改密码的账户id)。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-2-1.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-1.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;来到安全问题的代码段，可以看到84行的$safequestion跟$safeanswer通过弱比较判断。
                 	所以，只要控制好这两个变量就能进入sn($mid, $row['userid'], $row['email'], 'N')函数。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-2-2.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-2.jpg" alt="">
                 </a>
                 <span class="caption text-muted">令dopost=safequestion&safequestion=0e123&safeanswer=&id=3</span>
@@ -194,7 +197,7 @@
                 	所以，令safequestion=0e123&safeanswer=即可进入sn($mid, $row['userid'], $row['email'], 'N')函数。</p>
                 
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-2-3.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-3.jpg" alt="">
                 </a>
                 
@@ -203,40 +206,40 @@
                 	如果已生成，进入160行的newmail()函数；如果未生成，进入165行的newmail()函数。
                 	这里因为我前面已经测试过了，所以会进入165行，但其实结果都一样。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-2-4.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-4.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下newmail()函数，可以看到这里通过random()函数生成一个八位随机数密码。
                 	这里虽然看起来要爆破，但在94行的位置直接将randval传入$_GET['key']参数中。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-2-5.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-5.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;如果在上面判断已生成随机密码，则会走到这里的$type == 'UPDATE'分支。
                 	结果也是在116行直接将randval传入$_GET['key']参数中。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-2-6.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-6.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;接下来会带着这个$_GET['key']跳转到修改密码页面，相当于跳过了身份验证的环节。
                 	不过需要注意这里的url中会带有实体编码的&即&amp;amp;，需要手动去除。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-2-7.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-7.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;最后，跳转到修改密码的页面进行修改密码即可。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-2-8.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-8.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;这里是修改密码的代码段。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-2-9.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-2-9.jpg" alt="">
                 </a>
                 
@@ -250,7 +253,7 @@
                 	则后台管理系统会自动同步这个前台的密码，即前台修改的是admin前后台的密码。
                 	但有个问题就是前台是默认禁止登录admin账户的。所以，需要搭配前面的漏洞来进行修改。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-3-1.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-3-1.jpg" alt="">
                 </a>
                 
@@ -265,38 +268,38 @@
                 	首先看到/dede/tag_test_action.php，这里有一个csrf_check()函数进行csrf token检验。
                 	所以，这里需要伪造一下csrf token。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-2.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-2.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下csrf_check()函数，查看一下csrf token的参数是token。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-3.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-3.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;访问上传点dede/tpl.php?action=upload，在前端找一下csrf token的值。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-4.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-4.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;带着csrf token的值去请求一下。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-1.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-1.jpg" alt="">
                 </a>
                 <span class="caption text-muted">令token=cee74ee80b8a45f04d9d591374ec3df0</span>
                 
                 <p>&nbsp;&nbsp;&nbsp;csrf_check()函数绕过后来到$pv->SetTemplet($partcode, "string")。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-5.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-5.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下$pv->SetTemplet($partcode, "string")，这里进入了$this->dtp->LoadSource($temp)。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-6.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-6.jpg" alt="">
                 </a>
                 
@@ -304,58 +307,58 @@
                 	继续跟进$this->LoadTemplate($filename)。</p>
                 
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-8.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-8.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;来到$this->LoadTemplate($filename)，这里先将inc文件中每行内容拿出来赋值给$this->SourceString，
                 	感觉没什么用。跟踪变量的流向，跟进到下面的$this->LoadCache($filename)。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-9.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-9.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;来到$this->LoadCache($filename)，这里将payload写入缓冲，等待类去读取内容。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-10.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-10.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;接下来来看一下，如何去触发解析这个写在缓冲中的payload。
                 	回到开头那个文件的最后一行，这里调用了$pv->Display()函数。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-11.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-11.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下$pv->Display()函数，可以看到调用了$this->dtp->Display()函数。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-12.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-12.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;查看一下$this->dtp->Display()，发现调用了$this->GetResult()函数。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-13.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-13.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;跟进一下$this->GetResult()，自然而然地调用$this->AssignSysTag()函数。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-14.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-14.jpg" alt="">
                 </a>
                 
                 <p>&nbsp;&nbsp;&nbsp;这里判断缓冲区中的payload是否有运行runphp接口的标志，有的话进入$this->RunPHP($CTag, $i)。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-15.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-15.jpg" alt="">
                 </a>
                 <span class="caption text-muted">令rpartcode={dede:field name='source' runphp='yes'}phpinfo();{/dede:field}</span>
                 
                 <p>&nbsp;&nbsp;&nbsp;进入$this->RunPHP($CTag, $i)，成功eval执行payload。</p>
                 
-                <a href="#">
+                <a data-fancybox="gallery" href="../img/2021-6-1/pop-4-16.jpg">
                     <img class="img-fluid" src="../img/2021-6-1/pop-4-16.jpg" alt="">
                 </a>
                 
@@ -436,6 +439,9 @@
 
 <!-- Custom scripts for this template -->
 <script src="../js/clean-blog.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+
 
 </body>
 
