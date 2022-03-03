@@ -136,7 +136,12 @@
                 
                 <p>&nbsp;&nbsp;&nbsp;上述构造的Transformer[]数组传入ChainedTransformer()方法后，可以看到下面的transform()方法可以搭配3次反射构造一个执行类来执行命令。
                 	所以需要一个调用该类中transform()方法的方法。</p>
-                	
+              
+              <p>&nbsp;&nbsp;&nbsp;这里总结一下上面的反射调用链: </p>
+                <p>&nbsp;&nbsp;&nbsp;1. ConstantTransformer方法将一个传入的参数返回，在上面我们用来调用Runtime.class；</p>
+                <p>&nbsp;&nbsp;&nbsp;2. InvokerTransformer方法接受三个参数用来反射调用对象中的任意方法；</p>
+                <p>&nbsp;&nbsp;&nbsp;3. ChainedTransformer方法接受一个TransFormer类型的数组，链式调用每个数组成员的transform方法。</p>
+              
                 <a data-fancybox="gallery" href="../img/2021-11-2/1-4.jpg">
                     <img class="img-fluid" src="../img/2021-11-2/1-4.jpg" alt="">
                 </a>
