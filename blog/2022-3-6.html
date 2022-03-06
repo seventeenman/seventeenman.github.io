@@ -182,7 +182,7 @@
               
               <h2 class="section-heading">构造payload</h2>
               
-              <p>&nbsp;&nbsp;&nbsp;这里有个比较坑的地方，构造payload打过去发现报错了</p>
+              <p>&nbsp;&nbsp;&nbsp;这里有个比较坑的地方，构造payload打过去发现报错了。搜了一下相关原因，似乎是因为Shiro resovleClass使用的是ClassLoader.loadClass方法而非Class.forName方法。</p>
               
               
               <a data-fancybox="gallery" href="../img/2022-3-6/8.jpg">
