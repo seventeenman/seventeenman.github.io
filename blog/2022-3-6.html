@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>Apache Shiro 550 反序列化漏洞分析</h1>
+                    <h2 class="subheading">Apache Shiro 550 反序列化漏洞分析</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on March 6, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;关于shiro的反序列化漏洞，之前只是看了几篇分析文章，实战中打打EXP就结束了，这次来审计漏洞的根本原因。</p>
+                	
+                	
+                <h2 class="section-heading">影响范围</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;Apache Shiro < 1.2.4</p>
+                
+                <h2 class="section-heading">配置环境</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;不得不说，shiro这个版本太旧了，配置环境花了一个中午，最终选择使用vulhub的docker远程调试。</p>
+                
+                <div>
+                  
+                  <pre class='hljs'><code><span class="hljs-attribute">version</span>: <span class="hljs-string">'2'</span>
+<span class="hljs-attribute">services</span>:
+ <span class="hljs-string">web:</span>
+ <span class="hljs-label"> image:</span> vulhub/<span class="hljs-string">shiro:</span><span class="hljs-number">1.2</span>.4
+  <span class="hljs-label"> ports:</span>
+    - <span class="hljs-string">"8085:8080"</span>
+    - <span class="hljs-string">"5005:5005"</span>
+  <span class="hljs-label"> command:</span> java -<span class="hljs-string">agentlib:</span>jdwp=transport=dt_socket,server=y,suspend=n,address=<span class="hljs-number">5005</span> -jar /shirodemo-<span class="hljs-number">1.0</span>-SNAPSHOT.jar</code></pre>
+                  
+                </div>
+              
+                <h2 class="section-heading">Shiro特征</h2>
+                
+                
+              <p>&nbsp;&nbsp;&nbsp;提交表单登陆可以看到Set-Cookie: rememberMe=deleteMe;的字段。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/2.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/2.jpg">
+              </a>
+                
+              
+                
+                
+                <h2 class="section-heading">漏洞成因</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;在shiro 1.2.4版本之前，RememberMe cookie中加密的序列化数据是通过AES密钥(硬编码如图)加密的。
+                  这导致了我们在RememberMe功能中，可以通过修改cookie为我们恶意的序列化数据来打反序列化链。这个cookie的作用主要是用来保存用户的会话状态，具体的序列化数据加解密过程在后面分析。</p>
+                
+                <p>&nbsp;&nbsp;&nbsp;大概的一个过程是shiro获取cookie中的rememberMe的值，将其base64解码后使用AES密钥解密，再进行反序列化。
+                换句话说，shiro生成的RememberMe cookie是先将序列化数据base64编码，再通过AES密钥加密。</p>
+                	
+              
+                <a data-fancybox="gallery" href="../img/2022-3-6/1.jpg">
+                  <img class="img-fluid" src="../img/2022-3-6/1.jpg">
+                </a>
+              
+              
+               <h2 class="section-heading">Cookie加密</h2>
+                
+                
+              <p>&nbsp;&nbsp;&nbsp;首先勾选rememberMe，使用账号密码登陆。可以看到来到onSuccessfulLogin方法中，判断勾选了rememberMe后进入rememberIdentity方法。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/3.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/3.jpg">
+              </a>
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;这里从箭头指向可以看到rememberIdentity方法重载的过程。之后进入convertPrincipalsToBytes方法，
+              先是serialize方法序列化登陆信息，之后进入encrypt方法进行加密。
+              这个convertPrincipalsToBytes方法是重点，基本上是构造shiro的remember cookie的过程。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/4.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/4.jpg">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;这里可以看到使用了getEncryptionCipherKey方法获取密钥来加密，而这个密钥默认是从AbstractRememberMeManager方法中调用setCipherKey获取到的。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/5.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/5.jpg">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;接着，返回加密后的byte数据，跟随变量流向进入rememberSerializedIdentity方法，</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/6.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/6.jpg">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;rememberSerializedIdentity方法中又对该数据进行base64编码后返回Set-Cookie。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/7.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/7.jpg">
+              </a>
+              
+              <h2 class="section-heading">构造payload</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;这里有个比较坑的地方，构造payload打过去发现报错了</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/8.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/8.jpg">
+              </a>
+              
+                
+                
+                
+                
+                
+              <h2 class="section-heading">EXP问题</h2>
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;1. aes的key不一定是kPH+bIxk5D2deZiIxcaaaA==，可能被修改。这里可以在github上找出现频率较高的key来爆破。</p>
+              <p>&nbsp;&nbsp;&nbsp;2. 该漏洞RCE无回显，可以通过依赖构造回显。</p>
+                
+              
+                  
+
+
+
+              
+              
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
