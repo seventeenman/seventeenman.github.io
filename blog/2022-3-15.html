@@ -90,7 +90,21 @@
 
                 <p>&nbsp;&nbsp;&nbsp;内存马作为内网入口点在实战中的意义非常大，之前实战中一般使用内存马作为jsp木马被删之后的保险之一，
                 这次来学习一下内存马的原理。</p>
+            
+                <h2 class="section-heading">Tomcat架构</h2>
+            
+            
+                <p>&nbsp;&nbsp;&nbsp;大概的一个层次结构是Engine、Host、Context、Wrapper。</p>
+                
+                <p>1. Engine: 最顶层容器组件，其下可以包含多个Host，即可以包含一个或多个虚拟主机。它可以根据默认的Host来判断该由哪个虚拟主机处理。</p>
+                
+                <p>2. Host: 一个Host代表一个虚拟主机。当Host获得一个请求时，将把该请求匹配到某个Context上，然后把该请求交给该Context来处理。</p>
+                  
+                <p>3. Context: 一个Context代表一个Web应用，一个Web应用由一个或者多个Servlet实例组成。</p>
+                    
+                <p>4. Wrapper: 一个 Wrapper代表一个Servlet，负责管理一个Servlet的动作。因为是最底层容器，所以不能进行addChild。</p>
                 	
+                  <p>从Tomcat的web目录来看，Webapps对应的就是Host组件，而examples和ROOT代表的是Context。</p>
                 	
                 <h2 class="section-heading">Filter与Servlet</h2>
                 
