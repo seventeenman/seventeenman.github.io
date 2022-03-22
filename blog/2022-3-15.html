@@ -157,9 +157,12 @@
               <p>5. 使用ApplicationFilterConfig封装filterDef对象，添加到filterConfigs中</p>
               
               
-              <h2 class="section-heading">Tomcat Filter内存马源码</h2>
+              <h2 class="section-heading">Tomcat利用jsp直接注入Filter内存马</h2>
               
-
+              <p>&nbsp;&nbsp;&nbsp;这种内存马针对上传jsp直接注入(request和response是jsp的内置对象)的情况，
+                但在反序列化直接打内存马的时候不一定能直接拿到ServletContext(ServletContext实现其实是ApplicationContext)，
+                需要先去获取request，并且为了让命令执行能够有回显，还需要拿到response。</p>
+                
               
               <div>
               	
@@ -246,9 +249,6 @@
 %&gt;</code></pre>
               	
               </div>
-                
-              
-                
 
 
               
