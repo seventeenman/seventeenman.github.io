@@ -90,7 +90,54 @@
 
                 <p>&nbsp;&nbsp;&nbsp;阅读了一下其它师傅写的腾讯WAF挑战赛回忆录，感觉他把PHP获取$_POST特性总结的很好。
                   之前绕waf更多的是改数据包看能否解析盲测出来的，所以借此机会复现总结一下思路，方便以后对绕waf思路进行扩展。</p>
-                	
+              
+              <h2 class="section-heading">搭建环境</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;本文绕过主要针对于用multipart/form-data伪造为文件上传数据，用来绕过对文件上传内容检测不严格的waf。</p>
+                <p>&nbsp;&nbsp;&nbsp;利用的原理主要是PHP对Content-Type没有做校验，并且处理表单文件时类似.NET中常用的context.Request.Files处理文件的形式
+                (它在匹配文件名时只匹配Content-Disposition:后的filename=xxx，而PHP中也只是校验filename=的字段。
+                当然，这种特性经常用于文件上传时候的waf检测后缀名绕过，这里不做细讲)。</p>
+                <p>&nbsp;&nbsp;&nbsp;所以，只需要判断PHP是否将multipart/form-data请求包解析为POST传参即可。
+                这里简单输出PHP获取的$_POST和$_FILES判断。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/env.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/env.jpg" alt="">
+              </a>
+              
+              
+              <h2 class="section-heading">0x00截断filename使PHP不解析为文件</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;PHP匹配为表单上传的情况，$_FILES输出文件信息。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/1-2.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/1-2.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;这里将filename前hex改为00后，截断filename导致PHP不把该请求包解析为表单上传。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/1-1.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/1-1.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;双写Content-Disposition，PHP解析第一行的a为POST参数。一些waf为了防止文件上传的绕过，会取第二行进行检测。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/1-3.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/1-3.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;再构造一个假的上传格式内容，这里原作者是把图中圈出来这两行去掉，但我测试后发现--a前一行只要不只是\r\n换行都可以实现一样的效果，
+              所以这里也可以用来填充脏数据或者假的格式内容。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/1-4.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/1-4.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;两个boundary，这里需要注意图中圈出的这个boundary=a，必须要把它写在第一个，后面写什么内容都可以。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/1-5.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/1-5.jpg" alt="">
+              </a>
+              
               
               
 
