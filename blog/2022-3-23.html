@@ -214,13 +214,61 @@
                 <img class="img-fluid" src="../img/2022-3-23/2-6.jpg" alt="">
               </a>
               
-              <h2 class="section-heading">从PHP源码角度绕过</h2>
+              <h2 class="section-heading">从PHP源码角度构造skip_upload</h2>
               
               <p>&nbsp;&nbsp;&nbsp;首先到官网上下载源码。</p>
               
               <pre class='hljs'><code><span class="hljs-string">https:</span><span class="hljs-comment">//www.php.net/distributions/php-7.4.2.tar.xz</span></code></pre>
               
+              <p>&nbsp;&nbsp;&nbsp;跟进到图中的源码，这里skip_upload参数为1时即不当作文件上传，可以看到如果要skip_upload为1，需要让c<0。
+                这里的c类似于计数器，所以我们找自减的地方即可。由*tmp == ']'可得知，当name中有不匹配的]即可令skip_upload为1。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/3-1.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/3-1.jpg" alt="">
+              </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;在name中加入]即可不被PHP解析为上传文件</p>
+                
+                <a data-fancybox="gallery" href="../img/2022-3-23/3-2.jpg">
+                  <img class="img-fluid" src="../img/2022-3-23/3-2.jpg" alt="">
+                </a>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;还有另外一种让skip_upload为1的方法，看到图中代码段。当upload_cnt <= 0时，即可让skip_upload为1。</p>
+                
+                <a data-fancybox="gallery" href="../img/2022-3-23/3-3.jpg">
+                  <img class="img-fluid" src="../img/2022-3-23/3-3.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;查找这个参数可以看到php7.4.2中这个参数是从php.ini中获取的。</p>
+                
+                <a data-fancybox="gallery" href="../img/2022-3-23/3-4.jpg">
+                  <img class="img-fluid" src="../img/2022-3-23/3-4.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;可以看到php.ini中默认为20，即我们上传超过20个后就会出错并且skip_upload赋值为1。</p>
+                
+                <a data-fancybox="gallery" href="../img/2022-3-23/3-5.jpg">
+                  <img class="img-fluid" src="../img/2022-3-23/3-5.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;从源码也可以看出这里也是循环读取做自减操作，不过需要注意的是blen > 0才能进入这个if条件。</p>
+                
+                <a data-fancybox="gallery" href="../img/2022-3-23/3-6.jpg">
+                  <img class="img-fluid" src="../img/2022-3-23/3-6.jpg" alt="">
+                </a>
+                
+                <p>&nbsp;&nbsp;&nbsp;但在复现的时候发现一个问题，按文章中的做法，就算是只上传一个文件，也可以作为post参数。
+                按道理来说，最后一个也应该是filename才是触发这个点的关键，但改成filename也是没有发生反应。
+                并且我更换了几个php以及中间件环境做了排除，始终没有出现warning的信息。我认为这里应该是走进了其它的条件里，导致没有利用成功，
+                但看代码确实是按作者的思路走的，研究了一天没有找出原因。</p>
+                
+                <a data-fancybox="gallery" href="../img/2022-3-23/3-7.jpg">
+                  <img class="img-fluid" src="../img/2022-3-23/3-7.jpg" alt="">
+                </a>
 
+
+                
 
 
               
