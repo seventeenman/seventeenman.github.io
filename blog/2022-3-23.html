@@ -88,8 +88,9 @@
 
                 <h2 class="section-heading">前言</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;阅读了一下其它师傅写的腾讯WAF挑战赛回忆录，感觉他把PHP获取$_POST特性总结的很好。
-                  之前绕waf更多的是改数据包看能否解析盲测出来的，所以借此机会复现总结一下思路，方便以后对绕waf思路进行扩展。</p>
+                <p>&nbsp;&nbsp;&nbsp;阅读了一下其它师傅写的腾讯WAF挑战赛回忆录，感觉他把PHP获取$_POST特性总结的很好，
+                  并且从PHP底层的角度去看PHP特性来绕过。之前有看过其它师傅审计nginx源码来绕waf，但这类审计底层源码绕过对我来说痛点就是代码量巨大乃至无从下手。
+                  之前绕waf更多的是改数据包看能否解析盲测出来的，所以借此机会复现总结一下思路，以及学习如何从底层看特性，方便以后对绕waf思路进行扩展。</p>
               
               <h2 class="section-heading">搭建环境</h2>
               
@@ -173,7 +174,51 @@
               
               <h2 class="section-heading">进阶截断绕过</h2>
               
+              <p>&nbsp;&nbsp;&nbsp;同样的，在第一行Content-Disposition:中的:字符前任意位置加\t或者hex中的00与20都有同样的效果，
+                并且在这个时候，第二行才是我们的参数。在filename字段前加这三种字符中的一种也可以。</p>
               
+              <a data-fancybox="gallery" href="../img/2022-3-23/2-1.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/2-1.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;在name字段后(即post的参数名)插入\0也是可以的。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/2-2.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/2-2.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;在boundary字符前后可以添加任意字符来绕过waf的匹配。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/2-3.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/2-3.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;原作者还演示了一种比较骚的姿势，直接以boundary=b为分界名。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/2-4.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/2-4.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;在第一个filename中利用单引号和双引号来绕过。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/2-5.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/2-5.jpg" alt="">
+              </a>
+              
+              <h2 class="section-heading">进阶伪造multipart</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;这种绕过比较特殊，保留了Content-Type: application/x-www-form-urlencoded来伪造成multipart，
+              所以自带urldecode的效果。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-23/2-6.jpg">
+                <img class="img-fluid" src="../img/2022-3-23/2-6.jpg" alt="">
+              </a>
+              
+              <h2 class="section-heading">从PHP源码角度绕过</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;首先到官网上下载源码。</p>
+              
+              <pre class='hljs'><code><span class="hljs-string">https:</span><span class="hljs-comment">//www.php.net/distributions/php-7.4.2.tar.xz</span></code></pre>
               
 
 
