@@ -219,6 +219,83 @@
               <a data-fancybox="gallery" href="../img/2022-3-27/2-1.jpg">
                 <img class="img-fluid" src="../img/2022-3-27/2-1.jpg" alt="">
               </a>
+                
+              
+              <p>&nbsp;&nbsp;&nbsp;可以看到这里var8是var3，而var3根据第一行中的条件可以看出是((RemoteReference)var1).getReference()的值。
+              所以，关注一下传入decodeObject方法的第一个参数。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/2-2.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/2-2.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;跟随变量流入的方向，可以看到最初是从this.registry.lookup(var1.get(0))获取的，所以跟进一下。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/2-3.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/2-3.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;从return的地方向上看，可以看出这个lookup方法其实就是从我们恶意服务器获取stub信息，
+              然后在decodeObject方法中通过getReference()方法去获取ResourceRef类。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/2-4.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/2-4.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;接下来来看一下payload中是怎么构造的，才可以让var8.getFactoryClassLocation()为空。
+              可以看到最后一个参数为null，最后一个参数根据idea显示是factoryLocation参数，使得var8.getFactoryClassLocation()为空。</p>
+              
+              <div>
+                
+                
+                
+              </div>
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;既然不能从远程获取恶意的Factory类，那么是如何达到rce的呢，这里跟进getObjectInstance方法。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/2-5.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/2-5.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;如果按照之前没有jdk限制的利用流程，会走到getObjectFactoryFromReference中，
+                通过helper.loadClass(factoryName, codebase)加载恶意类然后调用clas.newInstance()实例化远程加载的恶意类。
+              但因为我们通过var8.getFactoryClassLocation()为空绕过了jdk限制，导致图中画出来的地方不满足条件无法加载恶意类，从而无法利用。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/2-6.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/2-6.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;这里虽然不能加载恶意类，但可以利用下面的getObjectInstance方法来创建工厂类。
+              同时需要在getObjectInstance方法中想办法执行我们的代码。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/2-7.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/2-7.jpg" alt="">
+              </a>
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;跟进到org.apache.naming.factory.BeanFactory类中查看getObjectInstance方法。
+              可以看到加载了javax.el.ELProcessor类。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/2-8.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/2-8.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;重点放在80行beanClass.getMethod(propName, paramTypes)的两个参数，
+                paramTypes为第一个参数调用方法的参数类型。而propName由forceString的值经过param.indexOf(61)对=进行截断后，取后半部分获取。
+              所以，forceString在exp中可以设置成{任意不含,和=的字符串}=eval。之后便调获取javax.el.ELProcessor中的eval方法。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/2-9.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/2-9.jpg" alt="">
+              </a>
+              
 
 
 
@@ -226,8 +303,7 @@
 
 
 
-
-
+              
 
 
               
