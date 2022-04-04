@@ -69,8 +69,8 @@
         <div class="row">
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
-                    <h1>若依CMS后台RCE漏洞分析</h1>
-                    <h2 class="subheading">若依CMS后台RCE漏洞分析</h2>
+                    <h1>若依CMS漏洞分析</h1>
+                    <h2 class="subheading">若依CMS后台RCE漏洞，后台SQL注入</h2>
                     <span class="meta">Posted by
               <a href="#">SEVENTEEN</a>
               on April 4, 2022</span>
@@ -93,7 +93,12 @@
                 	
                 	<h2 class="section-heading">影响范围</h2>
                 	
-                	<p>&nbsp;&nbsp;&nbsp;RuoYi <= 4.6.2</p>
+                	<p>&nbsp;&nbsp;&nbsp;后台RCE: </p>
+                	<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RuoYi <= 4.6.2</p>
+                	
+                	<p>&nbsp;&nbsp;&nbsp;后台SQL注入: </p>
+                	
+                	<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RuoYi <= 4.6.1</p>
                   
              
             <h2 class="section-heading">环境部署</h2>
@@ -108,7 +113,7 @@
             	</div>
             	
             	
-            	<h2 class="section-heading">漏洞复现</h2>
+            	<h2 class="section-heading">后台RCE</h2>
             	
             	
             	<p>&nbsp;&nbsp;&nbsp;首先登陆到后台，到系统监控中的定时任务中新建一个任务，在调用目标字符串输入payload。</p>
@@ -160,8 +165,15 @@ org.yaml.snakeyaml.Yaml.load(<span class="hljs-string">'!!javax.script.ScriptEng
                 <img class="img-fluid" src="../img/2022-4-4/1-5.jpg" alt="">
               </a>
               
+              <h2 class="section-heading">后台SQL注入</h2>
               
+              <p>&nbsp;&nbsp;&nbsp;登陆后台后向该POST接口构造报错注入即可SQL注入。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/1-5.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/1-5.jpg" alt="">
+              </a>
               
+              <h2 class="section-heading">漏洞分析</h2>
                 
 
                             
