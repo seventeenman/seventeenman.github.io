@@ -70,7 +70,7 @@
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
                     <h1>若依CMS漏洞分析</h1>
-                    <h2 class="subheading">若依CMS后台RCE漏洞，后台SQL注入</h2>
+                    <h2 class="subheading">若依CMS后台RCE漏洞，后台SQL注入，任意文件下载</h2>
                     <span class="meta">Posted by
               <a href="#">SEVENTEEN</a>
               on April 4, 2022</span>
@@ -169,11 +169,45 @@ org.yaml.snakeyaml.Yaml.load(<span class="hljs-string">'!!javax.script.ScriptEng
               
               <p>&nbsp;&nbsp;&nbsp;登陆后台后向该POST接口构造报错注入即可SQL注入。</p>
             	
-            	<a data-fancybox="gallery" href="../img/2022-4-4/1-5.jpg">
-                <img class="img-fluid" src="../img/2022-4-4/1-5.jpg" alt="">
+            	<a data-fancybox="gallery" href="../img/2022-4-4/2-1.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/2-1.jpg" alt="">
               </a>
               
               <h2 class="section-heading">漏洞分析</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;首先找到payload中路由对应的控制器，传入的role参数内包含我们的payload。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/2-2.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/2-2.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;这个方法内调用了selectRoleList方法，从方法名大概可以猜出这里造成的sql注入。
+              	先跟进startPage方法，从注释中看到这里的功能点大概是对读取到的内容做一个分页处理。
+              	对我们sql注入没有什么影响，我直接不给这几个参数赋值也不会影响我们后面的利用。
+              	同时，也可以看到if条件为false，所以这里直接返回了。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/2-3.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/2-3.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;返回后带着role进入了selectRoleList方法。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/2-4.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/2-4.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;跟了一堆动态代理，最终发现来到这里调用mybatis框架。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/2-5.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/2-5.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;来到语句映射文件，可以看到payload选择dataScope作为注入点的原因是这里直接用${params.dataScope}朴实无华地拼接上去，
+              	而不是使用#{params.dataScope}预编译，也没有进行任何过滤操作。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-4/2-5.jpg">
+                <img class="img-fluid" src="../img/2022-4-4/2-5.jpg" alt="">
+              </a>
                 
 
                             
