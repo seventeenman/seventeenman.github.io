@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>Fastjson<=1.2.24漏洞复现</h1>
+                    <h2 class="subheading">Fastjson<=1.2.24漏洞复现</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on April 6, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;这次来分析一下Fastjson低版本漏洞的成因以及利用。</p>
+                
+                <h2 class="section-heading">影响范围</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;Fastjson <= 1.2.24</p>
+                
+                <h2 class="section-heading">环境搭建</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;如果是用Maven部署完基础Spring环境后，还需要添加一个类用来修改json解析器，Spring内置默认是Jackson。</p>
+                
+                <div>
+                	
+                	<pre class='hljs'><code><span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.alibaba.fastjson.serializer.SerializerFeature;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.alibaba.fastjson.support.config.FastJsonConfig;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> org.springframework.boot.autoconfigure.web.HttpMessageConverters;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> org.springframework.context.annotation.Bean;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> org.springframework.context.annotation.Configuration;</span>
+<span class="hljs-preprocessor"><span class="hljs-keyword">import</span> org.springframework.http.converter.HttpMessageConverter;</span>
+
+@Configuration
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FastjsonConfig</span> </span>{
+    @Bean
+    <span class="hljs-keyword">public</span> HttpMessageConverters fastJsonHttpMessageConverters() {
+
+        FastJsonHttpMessageConverter fastConverter = <span class="hljs-keyword">new</span> FastJsonHttpMessageConverter();
+
+        FastJsonConfig fastJsonConfig = <span class="hljs-keyword">new</span> FastJsonConfig();
+        fastJsonConfig.setSerializerFeatures(SerializerFeature.PrettyFormat);
+
+        fastConverter.setFastJsonConfig(fastJsonConfig);
+        HttpMessageConverter&lt;?&gt; converter = fastConverter;
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> HttpMessageConverters(converter);
+    }
+}</code></pre>
+                	
+                	</div>
+                
+                <p>&nbsp;&nbsp;&nbsp;为了方便调试，这里直接调用Fastjson库来使用。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-6/env.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/env.jpg" alt="">
+              </a>
+                
+                	
+							<h2 class="section-heading">代码分析</h2>
+              
+              <p>&nbsp;&nbsp;&nbsp;写好payload后直接在JSON.parse(payload)打下断点。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-6/1-1.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-1.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;跟进parse方法，在重载后的parse方法中先对text(即打过去的payload)进行判空，
+              	非空的话进入else实例化DefaultJSONParser方法。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-6/1-2.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-2.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;这里调用DefaultJSONParser方法来解析json数据，对第一个字符进行判断后，
+              	确定是{给token赋值12。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-6/1-3.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-3.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;返回之后调用parse方法根据token去解析json。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-6/1-4.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-4.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;又调用了parseObject方法来解析类。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-6/1-5.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-5.jpg" alt="">
+              </a>
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;重点差不多从这里开始，前面大部分还是json解析的常规操作，
+              	这里结合token以及token后的字符做判断利用while循环做嵌套解析，之后进入if条件调用scanSymbol方法获取key，
+              	所以即将开始解析@type字段。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-6/1-6.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-6.jpg" alt="">
+              </a>
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;当第二次while循环走到上面的地方的时候，会开始给key赋值@type，
+              	所以会进入到这个if条件会调用TypeUtils.loadClass方法调用@type里的类名。
+              	按我的理解，这里之所以回去loadclass，是因为这个@type原先的功能就是用来指定json反序列化哪个类，
+              	不然的话，如果有两个类中有同名变量的话，会无法正确反序列化。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-6/1-7.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-7.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;这里先从mappings里面寻找类，发现为null之后会再调用loadclass加载对应的类返回。</p>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-4-6/1-8.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-8.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;返回之后来到这个地方获取deserializer类，来跟进一下这个方法。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-9.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-9.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;跟进之后还发现这里从Config中读取了denyList黑名单，禁止反射java.lang.Thread类。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-10.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-10.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;通过调用createJavaBeanDeserializer方法获取derializer。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-11.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-11.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;跟进一下JavaBeanInfo.build方法。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-12.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-12.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;首先获取@type值中的类名，获取所有的方法名，需要满足条件才能进入到if中。
+              	接着，进行遍历获取set开头的方法(下面也有一个一样的代码段进行遍历get开头的方法)。</p>
+              	<p>&nbsp;&nbsp;&nbsp;需要满足的方法条件:</p>
+              	<p>1. 方法名字符串长度大于4</p>
+              	<p>2. 非静态方法</p>
+              	<p>3. 返回值为void或者当前类</p>
+              	<p>4. 参数个数为1</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-13.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-13.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;之后，通过add方法将对应的方法名去掉set开头，存入fieldList中。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-14.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-14.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;回来调用deserializer方法。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-15.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-15.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;之后调用fieldDeser.setValue方法。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-16.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-16.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;在这里调用反射刚刚存入fieldList的方法名。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-17.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-17.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;接下来看一下为什么通过反射加载com.sun.rowset.JdbcRowSetImpl类。
+              	可以看到这个setDataSourceName进行了赋值，同时对this.conn初始化赋值为空。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-18.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-18.jpg" alt="">
+              </a>
+              
+              
+              <p>&nbsp;&nbsp;&nbsp;之后再次反射调用setAutoCommit方法，因为上面对this.conn初始化赋值为空，
+              	所以进入else里调用了connect方法。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-19.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-19.jpg" alt="">
+              </a>
+              
+              <p>&nbsp;&nbsp;&nbsp;前面我们对DataSourceName做了赋值，所以getDataSourceName判断不为空，
+              	进入到elseif中调用lookup方法触发rmi注入。</p>
+              
+              <a data-fancybox="gallery" href="../img/2022-4-6/1-20.jpg">
+                <img class="img-fluid" src="../img/2022-4-6/1-20.jpg" alt="">
+              </a>
+
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+              
+            	
+
+                
+
+                            
+              
+              
+
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
