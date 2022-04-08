@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>Fastjson<=1.2.41漏洞复现</h1>
+                    <h2 class="subheading">Fastjson<=1.2.41漏洞复现</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on April 8, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;上一篇分析了Fastjson低版本漏洞的成因以及利用，这篇来学习一下高版本Fastjson的补丁绕过。</p>
+                
+                
+                <h2 class="section-heading">影响范围</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;Fastjson <= 1.2.41</p>
+                
+                <h2 class="section-heading">前提条件</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;autoTypeSupport属性为true才能使用(fastjson>=1.2.25默认为false)。</p>
+                
+                <h2 class="section-heading">环境搭建</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里环境用的是1.2.26，所以手动改一下autoTypeSupport属性。</p>
+                
+                <a data-fancybox="gallery" href="../img/2022-4-8/env.jpg">
+                <img class="img-fluid" src="../img/2022-4-8/env.jpg" alt="">
+              	</a>
+                
+                <h2 class="section-heading">补丁分析</h2>
+                
+                
+                <p>&nbsp;&nbsp;&nbsp;补丁大部分内容在com.alibaba.fastjson.parser.ParserConfig中。
+                	首先是AutoType默认不开启，并且增加了checkAutoType方法。
+                
+                
+                <a data-fancybox="gallery" href="../img/2022-4-8/1-1.jpg">
+                <img class="img-fluid" src="../img/2022-4-8/1-1.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;如果AutoType开启后，进入到if中进行两次for循环。分别通过acceptList和denyList用来检测@type指定的类是否在白名单或黑名单。
+              		如果在白名单直接调用TypeUtils.loadClass返回，如果在黑名单就抛出异常。</p>
+              		
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-8/1-2.jpg">
+                	<img class="img-fluid" src="../img/2022-4-8/1-2.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;如果AutoType关闭，就先使用黑名单匹配，再进行白名单匹配。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-4-8/1-3.jpg">
+                	<img class="img-fluid" src="../img/2022-4-8/1-3.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;如果黑白名单逗没有匹配到并且AutoType开启，则直接调用TypeUtils.loadClass加载类。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-4-8/1-4.jpg">
+                	<img class="img-fluid" src="../img/2022-4-8/1-4.jpg" alt="">
+              	</a>
+              	        	
+              	
+              	<h2 class="section-heading">漏洞分析</h2>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;前面看到如果黑白名单逗没有匹配到并且AutoType开启，则直接调用TypeUtils.loadClass加载类。
+              		进入到TypeUtils.loadClass方法中可以看到匹配到L开头并且;结尾的类名后会去掉这两个字符再次load，
+              		所以我们将@type的类名开头加入L，结尾加入;即可绕过。</p>
+                
+                
+                <a data-fancybox="gallery" href="../img/2022-4-8/1-5.jpg">
+                <img class="img-fluid" src="../img/2022-4-8/1-5.jpg" alt="">
+              	</a>
+              
+              
+               
+              
+                          
+              
+              
+
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
