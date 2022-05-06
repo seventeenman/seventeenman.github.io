@@ -69,11 +69,11 @@
         <div class="row">
             <div class="col-lg-8 col-md-10 mx-auto">
                 <div class="post-heading">
-                    <h1>Fastjson<=1.2.41漏洞复现</h1>
-                    <h2 class="subheading">Fastjson<=1.2.41漏洞复现</h2>
+                    <h1>Fastjson不出网利用</h1>
+                    <h2 class="subheading">Fastjson不出网利用</h2>
                     <span class="meta">Posted by
               <a href="#">SEVENTEEN</a>
-              on April 8, 2022</span>
+              on May 8, 2022</span>
                 </div>
             </div>
         </div>
@@ -88,76 +88,23 @@
 
                 <h2 class="section-heading">前言</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;上一篇分析了Fastjson低版本漏洞的成因以及利用，这篇来学习一下高版本Fastjson的补丁绕过。</p>
+                <p>&nbsp;&nbsp;&nbsp;在不出网的情况下Fastjson无法使用rmi之类的方法来rce，所以这次来复现一下Fastjson不出网情况下的利用。</p>
                 
                 
-                <h2 class="section-heading">影响范围</h2>
+                <h2 class="section-heading">漏洞复现</h2>
                 
-                <p>&nbsp;&nbsp;&nbsp;Fastjson <= 1.2.41</p>
-                
-                <h2 class="section-heading">前提条件</h2>
-                
-                <p>&nbsp;&nbsp;&nbsp;autoTypeSupport属性为true才能使用(fastjson>=1.2.25默认为false)。</p>
-                
-                <h2 class="section-heading">环境搭建</h2>
-                
-                <p>&nbsp;&nbsp;&nbsp;这里环境用的是1.2.26，所以手动改一下autoTypeSupport属性。</p>
-                
-                <a data-fancybox="gallery" href="../img/2022-4-8/env.jpg">
-                <img class="img-fluid" src="../img/2022-4-8/env.jpg" alt="">
-              	</a>
-                
-                <h2 class="section-heading">补丁分析</h2>
-                
-                
-                <p>&nbsp;&nbsp;&nbsp;补丁大部分内容在com.alibaba.fastjson.parser.ParserConfig中。
-                	首先是AutoType默认不开启，并且增加了checkAutoType方法。
-                
-                
-                <a data-fancybox="gallery" href="../img/2022-4-8/1-1.jpg">
-                <img class="img-fluid" src="../img/2022-4-8/1-1.jpg" alt="">
-              	</a>
-              	
-              	<p>&nbsp;&nbsp;&nbsp;如果AutoType开启后，进入到if中进行两次for循环。分别通过acceptList和denyList用来检测@type指定的类是否在白名单或黑名单。
-              		如果在白名单直接调用TypeUtils.loadClass返回，如果在黑名单就抛出异常。</p>
-              		
+                <p>&nbsp;&nbsp;&nbsp;</p>
                 	
-                <a data-fancybox="gallery" href="../img/2022-4-8/1-2.jpg">
-                	<img class="img-fluid" src="../img/2022-4-8/1-2.jpg" alt="">
+                <a data-fancybox="gallery" href="../img/2022-5-8/1-1.jpg">
+                	<img class="img-fluid" src="../img/2022-5-8/1-1.jpg" alt="">
               	</a>
-              	
-              	<p>&nbsp;&nbsp;&nbsp;如果AutoType关闭，就先使用黑名单匹配，再进行白名单匹配。</p>
-              	
-              	<a data-fancybox="gallery" href="../img/2022-4-8/1-3.jpg">
-                	<img class="img-fluid" src="../img/2022-4-8/1-3.jpg" alt="">
-              	</a>
-              	
-              	<p>&nbsp;&nbsp;&nbsp;如果黑白名单逗没有匹配到并且AutoType开启，则直接调用TypeUtils.loadClass加载类。</p>
-              	
-              	<a data-fancybox="gallery" href="../img/2022-4-8/1-4.jpg">
-                	<img class="img-fluid" src="../img/2022-4-8/1-4.jpg" alt="">
-              	</a>
-              	        	
-              	
-              	<h2 class="section-heading">漏洞分析</h2>
-              	
-              	<p>&nbsp;&nbsp;&nbsp;前面看到如果黑白名单中没有匹配到并且AutoType开启，则直接调用TypeUtils.loadClass加载类。
-              		进入到TypeUtils.loadClass方法中可以看到匹配到L开头并且;结尾的类名后会去掉这两个字符再次load，
-              		所以我们将@type的类名开头加入L，结尾加入;即可绕过。</p>
                 
                 
-                <a data-fancybox="gallery" href="../img/2022-4-8/1-5.jpg">
-                <img class="img-fluid" src="../img/2022-4-8/1-5.jpg" alt="">
-              	</a>
-              
-              
                
-              
-                          
-              
-              
+              	
 
-           
+
+
                 <h2 class="section-heading">There Is Nothing Below</h2>
                 <p>&nbsp;&nbsp;&nbsp;</p>
 
