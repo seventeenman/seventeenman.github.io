@@ -141,6 +141,13 @@
                 <p>&nbsp;&nbsp;&nbsp;从ateam分析文章得到每个序列化对象(会逐个进行反序列化)都会有相同的二进制(0xfe 0x01 0x00 0x00)以及序列化魔术头(0xac 0xed 0x00 0x05)。
                 	所以我们只需要找aced0005和fe010000部分然后把恶意序列化数据替换进去。最后再修改T3协议头前四个字节的数据包长度字段。</p>
                 
+                <div>
+                	
+                	<pre class='hljs'><code>https://mp.weixin.qq.com/s?<span class="hljs-variable">__biz=</span><span class="hljs-variable">MzU5NDgxODU1MQ=</span>=&amp;<span class="hljs-variable">mid=</span><span class="hljs-number">2247485058</span>&amp;<span class="hljs-variable">idx=</span><span class="hljs-number">1</span>&amp;<span class="hljs-variable">sn=</span>d22b310acf703a32d938a7087c8e8704</code></pre>
+                	
+                	</div>
+                	
+                	
                 <h2 class="section-heading">自动化工具</h2>
                 
                 
