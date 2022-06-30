@@ -88,10 +88,29 @@
             	
             	
 
-                <h2 class="section-heading">T3协议</h2>
+                <h2 class="section-heading">补丁</h2>
 
-                <p>&nbsp;&nbsp;&nbsp;Java RMI的基础通信协议是JRMP，而T3协议是WebLogic RMI调用时专用的通信协议，是JRMP的加强版本。</p>
+                <p>&nbsp;&nbsp;&nbsp;CVE-2016-0638的环境其实就是CVE-2015-4852打上补丁，我打的是p22248372_1036012_Generic和p20780171_1036_Generic这两个补丁，
+                	安装的过程还算烦琐，不过打上补丁后原先的payload已经打不通了。</p>
                 
+                <a data-fancybox="gallery" href="../img/2022-6-29/1-1.jpg">
+                	<img class="img-fluid" src="../img/2022-6-29/1-1.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;定位到抛出异常的地方，可以看到这里多了一个ClassFilter.isBlackListed方法。</p>
+                
+                <a data-fancybox="gallery" href="../img/2022-6-29/1-2.jpg">
+                	<img class="img-fluid" src="../img/2022-6-29/1-2.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;在weblogic.rmi.ClassFilter#DEFAULT_BLACK_LIST可以看到黑名单。</p>
+                
+                <a data-fancybox="gallery" href="../img/2022-6-29/1-3.jpg">
+                	<img class="img-fluid" src="../img/2022-6-29/1-3.jpg" alt="">
+              	</a>
+
+
+
                 <h2 class="section-heading">影响范围</h2>
                 
                 <p>&nbsp;&nbsp;&nbsp;10.3.6</p>
@@ -103,6 +122,55 @@
               	
               	<h2 class="section-heading">漏洞分析</h2>
               	
+              	<p>&nbsp;&nbsp;&nbsp;上面可以看到在weblogic.rjvm.InboundMsgAbbrev.ServerChannelInputStream#resolveClass中设置了黑名单校验，
+              		所以绕过的思路应该是找到一处不使用ServerChannelInputStream方法进行反序列化的地方，然后通过二次反序列化达到绕过的目的。
+              		这个漏洞使用的是weblogic.jms.common.StreamMessageImpl#readExternal方法，这个方法中含有一个readobject方法可以用来反序列化。
+              		而var5来自于上面var4，var4又是从payload获取的。所以，这里来跟一下payload是怎么来的，以及后面到序列化前的过程。</p>
+                
+
+                
+                <a data-fancybox="gallery" href="../img/2022-6-29/1-4.jpg">
+                	<img class="img-fluid" src="../img/2022-6-29/1-4.jpg" alt="">
+              	</a>
+              	
+              	<p>&nbsp;&nbsp;&nbsp;这里var1从InputStream流var0中获取一个长度int，接着和var0一起传入copyPayloadFromStream方法。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-6-29/1-5.jpg">
+                	<img class="img-fluid" src="../img/2022-6-29/1-5.jpg" alt="">
+              	</a>
+              	
+              	
+              	<p>&nbsp;&nbsp;&nbsp;在copyPayloadFromStream方法中又将长度与ChunkSize的2倍进行比较，将较小的值与InputStream流传入Chunk.createOneSharedChunk方法中。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-6-29/1-6.jpg">
+                	<img class="img-fluid" src="../img/2022-6-29/1-6.jpg" alt="">
+              	</a>             
+              	             
+              	 <p>&nbsp;&nbsp;&nbsp;createOneSharedChunk方法其实就是从InputStream流中取出一块返回。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-6-29/1-7.jpg">
+                	<img class="img-fluid" src="../img/2022-6-29/1-7.jpg" alt="">
+              	</a>              
+              	             
+              	 <p>&nbsp;&nbsp;&nbsp;最后将这块返回的数据进行反序列化，到这里思路大概就是将之前CVE-2015-4852反序列化的点拿来触发weblogic.jms.common.StreamMessageImpl#readExternal方法中的反序列化，
+              	 	而不是直接把cc链反序列化数据一次性传过去，这样就能达到绕过第一次反序列化中resolveClass方法的黑名单限制。</p>
+              	
+              	<a data-fancybox="gallery" href="../img/2022-6-29/1-8.jpg">
+                	<img class="img-fluid" src="../img/2022-6-29/1-8.jpg" alt="">
+              	</a>              
+              	                  
+              	                
+              	
+              	<h2 class="section-heading">工具链接</h2>
+              	
+              	<div>
+              		
+              		<pre class='hljs'><code><span class="hljs-comment">// 需要用jdk6编译</span>
+<span class="hljs-string">https:</span><span class="hljs-comment">//github.com/5up3rc/weblogic_cmd</span></code></pre>
+              		
+              		</div>
+              	
+              	<h2 class="section-heading">EXP构造思路</h2>
               	
              
              
